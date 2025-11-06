@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">RU Virtual</string>
+    <string name="error_senha_empty">senha não pode ser vazia\n</string>
+    <string name="label_senha">Digite sua senha</string>
+    <string name="button_entrar">Entrar</string>
+    <string name="error_matricula_empty">Matrícula não pode ser vazia</string>
+    <string name="label_matricula">Digite sua matrícula</string>
+</resources>

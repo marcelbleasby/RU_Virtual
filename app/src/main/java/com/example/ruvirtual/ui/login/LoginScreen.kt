@@ -84,25 +84,10 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val textFieldColors = TextFieldDefaults.outlinedTextFieldColors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary, // Usar cor primária do tema
-                unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), // Cor do tema
-                focusedLabelColor = MaterialTheme.colorScheme.onSurface, // Cor do tema
-                unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), // Cor do tema
-                cursorColor = MaterialTheme.colorScheme.primary, // Usar cor primária do tema
-                focusedTextColor = MaterialTheme.colorScheme.onSurface, // Cor do tema
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface, // Cor do tema
-                errorBorderColor = MaterialTheme.colorScheme.error, // Usar cor de erro do tema
-                errorLabelColor = MaterialTheme.colorScheme.error, // Usar cor de erro do tema
-                errorCursorColor = MaterialTheme.colorScheme.error, // Usar cor de erro do tema
-                errorTextColor = MaterialTheme.colorScheme.error // Usar cor de erro do tema
-            )
-
             OutlinedTextField(
                 value = matricula,
                 onValueChange = viewModel::onMatriculaChange,
                 label = { Text(stringResource(R.string.label_matricula)) }, // String hardcoded
-                colors = textFieldColors,
                 isError = isMatriculaError,
                 supportingText = {
                     if (isMatriculaError) {
@@ -116,7 +101,6 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
                 onValueChange = viewModel::onSenhaChange,
                 label = { Text(stringResource(R.string.label_senha)) }, // String hardcoded
                 visualTransformation = PasswordVisualTransformation(),
-                colors = textFieldColors,
                 isError = isSenhaError,
                 supportingText = {
                     if (isSenhaError) {

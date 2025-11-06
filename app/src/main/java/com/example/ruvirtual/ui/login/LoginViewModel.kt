@@ -4,14 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ruvirtual.data.UserRepository
 import com.example.ruvirtual.data.model.LoginRequest
-import com.example.ruvirtual.data.model.ProvisionResponse
+import com.example.ruvirtual.data.model.User
 import com.example.ruvirtual.data.remote.ApiService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.example.ruvirtual.data.UserDataHolder // Importar UserDataHolder
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
@@ -25,7 +24,7 @@ class LoginViewModel @Inject constructor(
     private val _senha = MutableStateFlow("")
     val senha = _senha.asStateFlow()
 
-    private val _loginResult = MutableStateFlow<ProvisionResponse?>(null)
+    private val _loginResult = MutableStateFlow<User?>(null)
     val loginResult = _loginResult.asStateFlow()
 
     private val _errorMessage = MutableStateFlow<String?>(null)
@@ -39,12 +38,12 @@ class LoginViewModel @Inject constructor(
 
     fun onMatriculaChange(newValue: String) {
         _matricula.value = newValue
-        _isMatriculaError.value = false // Clear error when text changes
+        _isMatriculaError.value = false
     }
 
     fun onSenhaChange(newValue: String) {
         _senha.value = newValue
-        _isSenhaError.value = false // Clear error when text changes
+        _isSenhaError.value = false
     }
 
     fun onLoginClicked() {
@@ -67,10 +66,16 @@ class LoginViewModel @Inject constructor(
                 val response = apiService.provisionCard(LoginRequest(currentMatricula, currentSenha))
                 if (response.isSuccessful) {
                     response.body()?.let {
-                        userRepository.saveVirtualCardId(it.vCardId ?: "")
-                        UserDataHolder.provisionResponse = it // Salvar a resposta no UserDataHolder
-                        _loginResult.value = it
-                        _errorMessage.value = null // Clear any previous error
+                        val user = User(
+                            vCardId = it.vCardId,
+                            nome = it.nome,
+                            matricula = it.matricula,
+                            creditos = it.creditos,
+                            transacoes = it.transacoes
+                        )
+                        userRepository.saveUser(user)
+                        _loginResult.value = user
+                        _errorMessage.value = null
                     } ?: run {
                         _errorMessage.value = "Resposta inesperada do servidor."
                     }

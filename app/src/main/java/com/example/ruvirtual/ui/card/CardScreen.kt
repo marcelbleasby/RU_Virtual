@@ -338,7 +338,7 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
                     .height(200.dp)
                     .clickable { onPayClick() },
                 colors = CardDefaults.cardColors(
-                    containerColor = primaryDark // Using primaryDark from the new palette for the virtual card
+                    containerColor = MaterialTheme.colorScheme.primary // Using primaryDark from the new palette for the virtual card
                 ),
                 shape = RoundedCornerShape(16.dp)
             ) {
@@ -356,19 +356,19 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
                         Icon(
                             imageVector = Icons.Filled.Memory,
                             contentDescription = "Chip do cartão",
-                            tint = onPrimaryDark, // Using onPrimaryDark for icons on the virtual card
+                            tint = MaterialTheme.colorScheme.onPrimary, // Using onPrimaryDark for icons on the virtual card
                             modifier = Modifier.size(40.dp)
                         )
                         Column(horizontalAlignment = Alignment.End) {
                             Icon(
                                 imageVector = Icons.Default.Nfc,
                                 contentDescription = "Símbolo NFC",
-                                tint = onPrimaryDark, // Using onPrimaryDark for icons on the virtual card
+                                tint = MaterialTheme.colorScheme.onPrimary, // Using onPrimaryDark for icons on the virtual card
                                 modifier = Modifier.size(40.dp)
                             )
                             Text(
                                 text = "NFC",
-                                color = onPrimaryDark, // Using onPrimaryDark for text on the virtual card
+                                color = MaterialTheme.colorScheme.onPrimary, // Using onPrimaryDark for text on the virtual card
                                 fontSize = 12.sp
                             )
                         }
@@ -378,13 +378,13 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
                     Column {
                         Text(
                             text = matricula,
-                            color = onPrimaryDark, // Using onPrimaryDark for text on the virtual card
+                            color = MaterialTheme.colorScheme.onPrimary, // Using onPrimaryDark for text on the virtual card
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = nome.uppercase(),
-                            color = onPrimaryDark.copy(alpha = 0.8f), // Using onPrimaryDark for text on the virtual card
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f), // Using onPrimaryDark for text on the virtual card
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -398,13 +398,13 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
                         if (showNfcAnimation) {
                             Text(
                                 text = "• Toque para pagar",
-                                color = onPrimaryDark.copy(alpha = animatedAlpha), // Using onPrimaryDark for text on the virtual card
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = animatedAlpha), // Using onPrimaryDark for text on the virtual card
                                 fontSize = 14.sp
                             )
                         } else {
                             Text(
                                 text = "Toque no cartão para ativar pagamento",
-                                color = onPrimaryDark.copy(alpha = 0.7f), // Using onPrimaryDark for text on the virtual card
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f), // Using onPrimaryDark for text on the virtual card
                                 fontSize = 14.sp
                             )
                         }
@@ -431,8 +431,8 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
                 ) {
                     items(transacoes) { transaction ->
                         val isRecarga = transaction.valor >= 0
-                        val iconTint = if (isRecarga) GreenSuccess else MaterialTheme.colorScheme.error
-                        val iconBackground = if (isRecarga) GreenSuccess.copy(alpha = 0.2f) else MaterialTheme.colorScheme.errorContainer
+                        val iconTint = if (isRecarga) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error
+                        val iconBackground = if (isRecarga) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.errorContainer
 
                         Card(
                             modifier = Modifier

@@ -11,7 +11,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,16 +28,12 @@ class CardViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage = _errorMessage.asStateFlow()
 
-    private val _lastRefreshed = MutableStateFlow<Date?>(null)
-    val lastRefreshed = _lastRefreshed.asStateFlow()
-
     init {
         // Load initial data from UserDataHolder if available, then refresh if needed
-        UserDataHolder.provisionResponse?.let {
-            _provisionResponse.value = it
-            _lastRefreshed.value = Date() // Set current time on initial load from holder
-        } ?: run {
+        if (UserDataHolder.provisionResponse == null) {
             refreshCardData(true) // Attempt to load if UserDataHolder is empty
+        } else {
+            _provisionResponse.value = UserDataHolder.provisionResponse
         }
     }
 
@@ -57,7 +52,6 @@ class CardViewModel @Inject constructor(
                         UserDataHolder.provisionResponse = it // Update global holder
                         _provisionResponse.value = it // Update ViewModel's state
                         _errorMessage.value = null
-                        _lastRefreshed.value = Date() // Update timestamp on successful refresh
                         Log.d("CardViewModel", "Card data refreshed successfully.")
                     } ?: run {
                         _errorMessage.value = "Resposta inesperada do servidor ao carregar detalhes do cartão."

@@ -22,10 +22,8 @@ class RuHostApduService : HostApduService() {
 
     private val SELECT_APDU_HEADER = "00A40400"
     private val APP_AID = "F0010203040506"
-    // Precomputed byte arrays for comparisons
     private val SELECT_APDU_HEADER_BYTES by lazy { hexStringToByteArray(SELECT_APDU_HEADER) }
     private val APP_AID_BYTES by lazy { hexStringToByteArray(APP_AID) }
-    // Maximum payload size to return in one APDU response (leave room for SW bytes)
     private val MAX_RESPONSE_SIZE = 240
     private val SW_OK = byteArrayOf(0x90.toByte(), 0x00.toByte())
     private val SW_CONDITIONS_NOT_SATISFIED = byteArrayOf(0x69.toByte(), 0x85.toByte())
@@ -47,16 +45,15 @@ class RuHostApduService : HostApduService() {
 
             val header = commandApdu.copyOfRange(0, 4)
             if (Arrays.equals(header, SELECT_APDU_HEADER_BYTES)) {
-                // commandApdu[4] is a signed byte in Kotlin; mask to get unsigned value
                 val aidLength = commandApdu[4].toInt() and 0xFF
                 if (aidLength < 0 || commandApdu.size < 5 + aidLength) return SW_CONDITIONS_NOT_SATISFIED
 
                 val aid = commandApdu.copyOfRange(5, 5 + aidLength)
                 if (Arrays.equals(aid, APP_AID_BYTES)) {
-                    val vCardId = getUserRepository().getVirtualCardId()
-                    Log.d("RuHostApduService", "Retrieved vCardId for emulation: $vCardId") // Added Log
+                    val vCardId = getUserRepository().getUser()?.vCardId
+                    Log.d("RuHostApduService", "Retrieved vCardId for emulation: $vCardId")
                     if (vCardId.isNullOrEmpty()) {
-                        Log.w("RuHostApduService", "vCardId is null or empty, returning SW_CONDITIONS_NOT_SATISFIED.") // Added Log
+                        Log.w("RuHostApduService", "vCardId is null or empty, returning SW_CONDITIONS_NOT_SATISFIED.")
                         return SW_CONDITIONS_NOT_SATISFIED
                     }
 
@@ -77,7 +74,6 @@ class RuHostApduService : HostApduService() {
     }
 
     override fun onDeactivated(reason: Int) {
-        // No action needed
         Log.d("RuHostApduService", "Service deactivated. Reason: $reason")
     }
 

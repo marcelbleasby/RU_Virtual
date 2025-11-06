@@ -30,9 +30,10 @@ class CardViewModel @Inject constructor(
 
     init {
         // Load initial data from UserDataHolder if available, then refresh if needed
-        UserDataHolder.provisionResponse?.let { 
-            _provisionResponse.value = it
+        if (UserDataHolder.provisionResponse == null) {
             refreshCardData(true) // Attempt to load if UserDataHolder is empty
+        } else {
+            _provisionResponse.value = UserDataHolder.provisionResponse
         }
     }
 

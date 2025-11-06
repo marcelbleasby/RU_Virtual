@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ruvirtual.data.UserRepository
-import com.example.ruvirtual.data.model.ProvisionResponse
 import com.example.ruvirtual.data.model.User
 import com.example.ruvirtual.data.remote.ApiService
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -47,7 +46,7 @@ class CardViewModel @Inject constructor(
                 if (response.isSuccessful) {
                     response.body()?.let {
                         val user = User(
-                            vCardId = it.vCardId,
+                            vCardId = it.vCardId?:String(),
                             nome = it.nome,
                             matricula = it.matricula,
                             creditos = it.creditos,

@@ -7,10 +7,10 @@ junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 # Versões alinhadas para compatibilidade com SDK 34 e Kotlin 1.9.22
 activityCompose = "1.11.0"
-composeBom = "2025.10.01"
+composeBom = "2025.11.00"
 composeCompiler = "1.5.10"
 lifecycleVersion = "2.9.4"
-navigationCompose = "2.9.5"
+navigationCompose = "2.9.6"
 hilt = "2.57.2"
 hiltNavigationCompose = "1.3.0"
 retrofit = "3.0.0"
@@ -21,11 +21,11 @@ material = "1.13.0"
 
 material3 = "1.4.0"
 material3Version = "1.4.0"
-playServicesWearable = "18.0.0"
-composeMaterial = "1.2.1"
-composeFoundation = "1.2.1"
+playServicesWearable = "19.0.0"
+composeMaterial = "1.5.5"
+composeFoundation = "1.5.5"
 wearToolingPreview = "1.0.0"
-coreSplashscreen = "1.0.1"
+coreSplashscreen = "1.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

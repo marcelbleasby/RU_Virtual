@@ -12,6 +12,8 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import com.google.android.gms.wearable.DataClient
+import com.google.android.gms.wearable.Wearable
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
@@ -24,14 +26,21 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideDataClient(@ApplicationContext context: Context) = Wearable.getDataClient(context)
+
+    @Provides
+    @Singleton
     fun provideSharedPreferences(@ApplicationContext context: Context): SharedPreferences {
         return context.getSharedPreferences("ru_virtual_prefs", Context.MODE_PRIVATE)
     }
 
     @Provides
     @Singleton
-    fun provideUserRepository(sharedPreferences: SharedPreferences): UserRepository {
-        return UserRepository(sharedPreferences)
+    fun provideUserRepository(
+        sharedPreferences: SharedPreferences,
+        dataClient: DataClient
+    ): UserRepository {
+        return UserRepository(sharedPreferences, dataClient)
     }
 
     @Provides

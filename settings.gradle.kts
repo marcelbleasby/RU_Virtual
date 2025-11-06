@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "RU Virtual"
 include(":app")
+include(":ru_virtual_wear_os")

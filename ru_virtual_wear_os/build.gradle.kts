@@ -57,6 +57,7 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation("androidx.wear:wear-tiles:1.2.0")
+    implementation("androidx.wear:wear-remote-interactions:1.0.0")
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)

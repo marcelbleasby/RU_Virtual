@@ -17,8 +17,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
+import androidx.wear.remote.interactions.RemoteActivityHelper
 import com.example.ru_virtual_wear_os.presentation.viewmodel.MainViewModel
-import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.Wearable
 
 class MainActivity : ComponentActivity() {
@@ -37,6 +37,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun WearApp(vCardId: String?) {
     val context = LocalContext.current
+    val remoteActivityHelper = RemoteActivityHelper(context)
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -81,7 +83,7 @@ fun WearApp(vCardId: String?) {
                                     "com.example.ruvirtual.MainActivity"
                                 )
                             }
-                            Wearable.getRemoteActivityClient(context).startActivity(node.id, intent)
+                            remoteActivityHelper.startRemoteActivity(intent, node.id)
                         }
                     }
                 }) {

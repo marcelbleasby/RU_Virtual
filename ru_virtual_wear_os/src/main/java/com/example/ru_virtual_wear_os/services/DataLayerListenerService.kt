@@ -1,9 +1,11 @@
 package com.example.ru_virtual_wear_os.services
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.ru_virtual_wear_os.nfc.RuHostApduService
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.WearableListenerService
@@ -26,18 +28,23 @@ class DataLayerListenerService : WearableListenerService() {
                 val dataMapItem = DataMapItem.fromDataItem(event.dataItem)
                 val vCardId = dataMapItem.dataMap.getString("vcard_id")
                 if (event.dataItem.uri.path == "/user_data" && vCardId != null) {
+                    Log.d("DataLayerListener", "Received VCardId: $vCardId")
+                    // Update the in-memory cache for the NFC service
+                    RuHostApduService.vCardId = vCardId
+                    // Persist to DataStore for the UI and tile
                     serviceScope.launch {
-                        saveVCardId(vCardId)
+                        saveVCardIdToDataStore(vCardId)
                     }
                 }
             }
         }
     }
 
-    private suspend fun saveVCardId(vCardId: String) {
+    private suspend fun saveVCardIdToDataStore(vCardId: String) {
         dataStore.edit { preferences ->
             val key = stringPreferencesKey("vcard_id")
             preferences[key] = vCardId
+            Log.d("DataLayerListener", "Saved VCardId to DataStore.")
         }
     }
 

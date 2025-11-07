@@ -14,33 +14,44 @@ private val Context.dataStore by preferencesDataStore(name = "user_prefs")
 
 class RuHostApduService : HostApduService() {
 
-    private var vCardId: String? = null
+    companion object {
+        // In-memory cache for the VCardId to ensure fast responses.
+        // It's volatile to ensure visibility across threads, although not strictly necessary here.
+        @Volatile
+        var vCardId: String? = null
 
-    private val SELECT_APDU_HEADER = "00A40400"
-    private val APP_AID = "F0010203040506"
-    private val SELECT_APDU_HEADER_BYTES by lazy { hexStringToByteArray(SELECT_APDU_HEADER) }
-    private val APP_AID_BYTES by lazy { hexStringToByteArray(APP_AID) }
-    private val MAX_RESPONSE_SIZE = 240
-    private val SW_OK = byteArrayOf(0x90.toByte(), 0x00.toByte())
-    private val SW_CONDITIONS_NOT_SATISFIED = byteArrayOf(0x69.toByte(), 0x85.toByte())
+        private const val SELECT_APDU_HEADER = "00A40400"
+        private const val APP_AID = "F0010203040506"
+        private val SELECT_APDU_HEADER_BYTES by lazy { hexStringToByteArray(SELECT_APDU_HEADER) }
+        private val APP_AID_BYTES by lazy { hexStringToByteArray(APP_AID) }
+        private const val MAX_RESPONSE_SIZE = 240
+        private val SW_OK = byteArrayOf(0x90.toByte(), 0x00.toByte())
+        private val SW_CONDITIONS_NOT_SATISFIED = byteArrayOf(0x69.toByte(), 0x85.toByte())
 
-    override fun onCreate() {
-        super.onCreate()
-        runBlocking {
-            vCardId = getVCardId()
-            Log.d("RuHostApduService", "Initial VCardId loaded: $vCardId")
+        private fun hexStringToByteArray(hex: String): ByteArray {
+            val len = hex.length
+            if (len % 2 != 0) throw IllegalArgumentException("hex string must have even length")
+            val data = ByteArray(len / 2)
+            var i = 0
+            while (i < len) {
+                val hi = Character.digit(hex[i], 16)
+                val lo = Character.digit(hex[i + 1], 16)
+                if (hi == -1 || lo == -1) throw IllegalArgumentException("Invalid hex character in: $hex")
+                data[i / 2] = ((hi shl 4) + lo).toByte()
+                i += 2
+            }
+            return data
         }
     }
 
-    private suspend fun getVCardId(): String? {
-        val key = stringPreferencesKey("vcard_id")
-        val preferences = dataStore.data.first()
-        return preferences[key]
-    }
-
     override fun processCommandApdu(commandApdu: ByteArray, extras: Bundle?): ByteArray {
-        runBlocking {
-            vCardId = getVCardId()
+        // If the cache is empty (e.g., after a reboot), try to hydrate it from DataStore once.
+        if (vCardId == null) {
+            Log.d("RuHostApduService", "Cache is empty. Hydrating from DataStore.")
+            runBlocking {
+                vCardId = getVCardIdFromDataStore()
+            }
+            Log.d("RuHostApduService", "Hydrated cache with VCardId: $vCardId")
         }
 
         try {
@@ -53,13 +64,14 @@ class RuHostApduService : HostApduService() {
 
                 val aid = commandApdu.copyOfRange(5, 5 + aidLength)
                 if (Arrays.equals(aid, APP_AID_BYTES)) {
-                    Log.d("RuHostApduService", "Retrieved vCardId for emulation: $vCardId")
-                    if (vCardId.isNullOrEmpty()) {
+                    val currentVCardId = vCardId // Read from the fast in-memory cache
+                    Log.d("RuHostApduService", "Retrieved vCardId for emulation: $currentVCardId")
+                    if (currentVCardId.isNullOrEmpty()) {
                         Log.w("RuHostApduService", "vCardId is null or empty, returning SW_CONDITIONS_NOT_SATISFIED.")
                         return SW_CONDITIONS_NOT_SATISFIED
                     }
 
-                    val vCardBytes = vCardId!!.toByteArray(Charsets.UTF_8)
+                    val vCardBytes = currentVCardId.toByteArray(Charsets.UTF_8)
                     val payload = if (vCardBytes.size > MAX_RESPONSE_SIZE) {
                         Log.w("RuHostApduService", "vCardId payload (${vCardBytes.size} bytes) exceeds max; truncating to $MAX_RESPONSE_SIZE bytes")
                         vCardBytes.copyOfRange(0, MAX_RESPONSE_SIZE)
@@ -79,18 +91,14 @@ class RuHostApduService : HostApduService() {
         Log.d("RuHostApduService", "Service deactivated. Reason: $reason")
     }
 
-    private fun hexStringToByteArray(hex: String): ByteArray {
-        val len = hex.length
-        if (len % 2 != 0) throw IllegalArgumentException("hex string must have even length")
-        val data = ByteArray(len / 2)
-        var i = 0
-        while (i < len) {
-            val hi = Character.digit(hex[i], 16)
-            val lo = Character.digit(hex[i + 1], 16)
-            if (hi == -1 || lo == -1) throw IllegalArgumentException("Invalid hex character in: $hex")
-            data[i / 2] = ((hi shl 4) + lo).toByte()
-            i += 2
+    private suspend fun getVCardIdFromDataStore(): String? {
+        val key = stringPreferencesKey("vcard_id")
+        return try {
+            val preferences = dataStore.data.first()
+            preferences[key]
+        } catch (e: Exception) {
+            Log.e("RuHostApduService", "Error reading VCardId from DataStore", e)
+            null
         }
-        return data
     }
 }

@@ -81,6 +81,7 @@ dependencies {
     implementation(libs.logging.interceptor)
 
     // --- Testes (Padrão) ---
+    implementation(libs.play.services.wearable)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))

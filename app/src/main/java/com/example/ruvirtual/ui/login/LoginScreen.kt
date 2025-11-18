@@ -22,19 +22,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.ruvirtual.data.UserDataHolder // Adicionar import para UserDataHolder
-import com.example.ruvirtual.data.model.ProvisionResponse // Esta importação está sendo usada agora internamente pelo UserDataHolder
-import com.example.ruvirtual.data.model.LoginResult // Assumindo que LoginResult está neste pacote
 import com.example.ruvirtual.ui.theme.RUVirtualTheme // Importar seu tema
-
-// Importe stringResource e colorResource
 import androidx.compose.ui.res.stringResource
-// Se você definiu cores no tema M3:
 import androidx.compose.material3.MaterialTheme
-import com.example.ruvirtual.R // Importa a classe R para acessar recursos
-
+import com.example.ruvirtual.R
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 @OptIn(ExperimentalMaterial3Api::class) // Adicionado para resolver o aviso da API experimental
 @Composable
 fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltViewModel()) {
@@ -48,11 +41,12 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
 
     LaunchedEffect(loginResult) {
         loginResult?.let {
+            //TODO
             // VERIFICAR ESTA LÓGICA DE NAVEGAÇÃO E SUCESSO
             // Conforme discutido anteriormente, CardScreen agora busca os dados do UserDataHolder.
             // A navegação deve ser simplesmente para a rota "card", e a condição de sucesso
             // deve ser baseada na presença de dados críticos (ex: matricula não nula).
-            if (it.matricula != null && it.nome != null) { // Indicador de login bem-sucedido
+            if (it.nome != null) { // Indicador de login bem-sucedido
                 // Certifique-se de que o UserDataHolder foi preenchido pelo ViewModel aqui ou antes.
                 // Exemplo: viewModel.saveLoginData(it)
                 // Se o ViewModel já salva em UserDataHolder e 'it' é apenas uma confirmação

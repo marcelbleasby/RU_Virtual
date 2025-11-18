@@ -27,7 +27,7 @@ class UserRepository(
         sharedPreferences.edit { putString(USER_KEY, userJson) }
 
         val putDataMapReq = PutDataMapRequest.create(USER_DATA_PATH).apply {
-            dataMap.putString(VCARD_ID_KEY, user.vCardId)
+            dataMap.putString(VCARD_ID_KEY, user.vCardId?: "")
         }
         val putDataReq = putDataMapReq.asPutDataRequest().setUrgent()
         dataClient.putDataItem(putDataReq).addOnSuccessListener {

@@ -52,12 +52,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Locale
-
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 fun formatIsoToLocal(iso: String?): String {
     return try {
@@ -423,7 +422,7 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
                                     Spacer(modifier = Modifier.size(16.dp))
                                     Column {
                                         Text(
-                                            text = transaction.tipo, // Updated
+                                            text = transaction.tipo,
                                             color = MaterialTheme.colorScheme.onSurface,
                                             style = MaterialTheme.typography.bodyLarge
                                         )

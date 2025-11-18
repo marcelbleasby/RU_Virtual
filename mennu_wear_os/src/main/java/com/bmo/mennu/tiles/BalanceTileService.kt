@@ -1,7 +1,7 @@
 package com.bmo.mennu.tiles
 
 import android.content.Context
-import android.service.quicksettings.TileService
+import androidx.wear.tiles.TileService
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 
@@ -27,7 +27,7 @@ class BalanceTileService : TileService() {
     private val serviceJob = Job()
     private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
 
-    fun onTileRequest(requestParams: RequestBuilders.TileRequest) = serviceScope.future {
+    override fun onTileRequest(requestParams: RequestBuilders.TileRequest) = serviceScope.future {
         val vCardId = vCardId()
         TileBuilders.Tile.builder()
             .setResourcesVersion(RESOURCES_VERSION)

@@ -1,23 +1,24 @@
 package com.bmo.mennu.tiles
 
 import android.content.Context
+import android.service.quicksettings.TileService
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.wear.tiles.DeviceParametersBuilders
-import androidx.wear.tiles.DimensionBuilders
-import androidx.wear.tiles.LayoutElementBuilders
+
+import androidx.wear.protolayout.DeviceParametersBuilders
+import androidx.wear.protolayout.DimensionBuilders
 import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.ResourceBuilders
 import androidx.wear.tiles.TileBuilders
 import androidx.wear.tiles.TimelineBuilders
-import androidx.wear.tiles.TileService
-import androidx.wear.tiles.builders.TimelineBuilders
+
 import com.google.common.util.concurrent.Futures
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.guava.future
+import androidx.wear.protolayout.LayoutElementBuilders
 
 private const val RESOURCES_VERSION = "1"
 private val Context.dataStore by preferencesDataStore(name = "user_prefs")
@@ -26,7 +27,7 @@ class BalanceTileService : TileService() {
     private val serviceJob = Job()
     private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
 
-    override fun onTileRequest(requestParams: RequestBuilders.TileRequest) = serviceScope.future {
+    fun onTileRequest(requestParams: RequestBuilders.TileRequest) = serviceScope.future {
         val vCardId = vCardId()
         TileBuilders.Tile.builder()
             .setResourcesVersion(RESOURCES_VERSION)

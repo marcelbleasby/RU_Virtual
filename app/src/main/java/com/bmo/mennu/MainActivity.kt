@@ -1,14 +1,14 @@
 package com.bmo.mennu
 
-import com.bmo.mennu.ui.card.CardScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.runtime.Composable
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.bmo.mennu.ui.card.CardScreen
 import com.bmo.mennu.ui.login.LoginScreen
 import com.bmo.mennu.ui.theme.MennuTheme
 import dagger.hilt.android.AndroidEntryPoint

@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.bmo.mennu.data.UserRepository
 import com.bmo.mennu.data.remote.ApiService
+import com.google.android.gms.wearable.DataClient
+import com.google.android.gms.wearable.Wearable
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,8 +14,6 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import com.google.android.gms.wearable.DataClient
-import com.google.android.gms.wearable.Wearable
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 

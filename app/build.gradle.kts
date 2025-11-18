@@ -50,6 +50,7 @@ android {
 dependencies {
     // --- Core e XML ---
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.google.material) // Adicionada para os temas XML do Material 3
 
     // --- Compose ---

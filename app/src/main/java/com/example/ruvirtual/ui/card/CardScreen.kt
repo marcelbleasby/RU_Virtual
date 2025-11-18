@@ -52,7 +52,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import java.text.ParseException
@@ -120,7 +119,7 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text("Erro: dados do usuário não carregados", color = MaterialTheme.colorScheme.onBackground, fontSize = 18.sp)
+            Text("Erro: dados do usuário não carregados", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Tentar Recarregar",
@@ -147,7 +146,7 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
             verticalArrangement = Arrangement.Center
         ) {
             // Show a simple loading indicator or message during initial refresh
-            Text("Carregando dados do cartão...", color = MaterialTheme.colorScheme.onBackground, fontSize = 18.sp)
+            Text("Carregando dados do cartão...", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleMedium)
         }
         return
     }
@@ -194,8 +193,7 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
                 Text(
                     text = "RU Card",
                     color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.headlineSmall
                 )
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
@@ -211,13 +209,12 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
             Text(
                 text = "Olá, $nome!",
                 color = MaterialTheme.colorScheme.onBackground,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.headlineLarge,
             )
             Text(
                 text = "Seu cartão está pronto para uso",
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                fontSize = 16.sp
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyLarge
             )
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -241,15 +238,14 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
                             Text(
                                 text = "Refeições disponíveis",
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                fontSize = 14.sp
+                                style = MaterialTheme.typography.bodyMedium,
                             )
                             val availableMeals = creditos.toInt()
 
                             Text(
                                 text = "$availableMeals",
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                fontSize = 32.sp,
-                                fontWeight = FontWeight.Bold
+                                style = MaterialTheme.typography.displayMedium
                             )
                         }
                         Icon(
@@ -272,25 +268,24 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
                             Text(
                                 text = "Matrícula",
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                fontSize = 14.sp
+                                style = MaterialTheme.typography.bodyMedium
                             )
                             Text(
                                 text = matricula,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium
+                                style = MaterialTheme.typography.bodyLarge
                             )
                         }
                         Column(horizontalAlignment = Alignment.End) {
                             Text(
                                 text = "Nome",
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                fontSize = 14.sp
+                                style = MaterialTheme.typography.bodyMedium
                             )
                             Text(
                                 text = nome,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                fontSize = 16.sp,
+                                style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Medium
                             )
                         }
@@ -336,7 +331,7 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
                             Text(
                                 text = "NFC",
                                 color = MaterialTheme.colorScheme.onPrimary, // Using onPrimaryDark for text on the virtual card
-                                fontSize = 12.sp
+                                style = MaterialTheme.typography.labelSmall
                             )
                         }
                     }
@@ -346,14 +341,12 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
                         Text(
                             text = matricula,
                             color = MaterialTheme.colorScheme.onPrimary, // Using onPrimaryDark for text on the virtual card
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.Bold
+                            style = MaterialTheme.typography.headlineMedium
                         )
                         Text(
                             text = nome.uppercase(),
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f), // Using onPrimaryDark for text on the virtual card
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium
+                            style = MaterialTheme.typography.bodyLarge
                         )
                     }
 
@@ -366,13 +359,13 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
                             Text(
                                 text = "• Toque para pagar",
                                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = animatedAlpha), // Using onPrimaryDark for text on the virtual card
-                                fontSize = 14.sp
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         } else {
                             Text(
                                 text = "Toque no cartão para ativar pagamento",
                                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f), // Using onPrimaryDark for text on the virtual card
-                                fontSize = 14.sp
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
                     }
@@ -384,8 +377,7 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
             Text(
                 text = "Transações recentes",
                 color = MaterialTheme.colorScheme.onBackground,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
@@ -433,20 +425,19 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
                                         Text(
                                             text = transaction.tipo, // Updated
                                             color = MaterialTheme.colorScheme.onSurface,
-                                            fontSize = 16.sp,
-                                            fontWeight = FontWeight.Medium
+                                            style = MaterialTheme.typography.bodyLarge
                                         )
                                         Text(
                                             text = formatIsoToLocal(transaction.data), // 'data' is correct
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            fontSize = 12.sp
+                                            style = MaterialTheme.typography.bodySmall
                                         )
                                     }
                                 }
                                 Text(
                                     text = (if (isRecarga) "+ " else "- ") + "R$ %.2f".format(kotlin.math.abs(transaction.valor)), // Updated
                                     color = iconTint,
-                                    fontSize = 16.sp,
+                                    style = MaterialTheme.typography.bodyLarge,
                                     fontWeight = FontWeight.Bold
                                 )
                             }
@@ -457,7 +448,7 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
                 Text(
                     text = "Nenhuma transação recente.",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 16.sp,
+                    style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
             }

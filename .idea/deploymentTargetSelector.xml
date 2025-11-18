@@ -21,7 +21,7 @@
           </targets>
         </DialogSelection>
       </SelectionState>
-      <SelectionState runConfigName="ru_virtual_wear_os">
+      <SelectionState runConfigName="mennu_wear_os">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

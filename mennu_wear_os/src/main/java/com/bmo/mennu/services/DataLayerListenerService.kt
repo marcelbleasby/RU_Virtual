@@ -1,0 +1,55 @@
+package com.bmo.mennu.services
+
+import android.content.Context
+import android.util.Log
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import com.bmo.mennu.nfc.MennuHostApduService
+import com.google.android.gms.wearable.DataEventBuffer
+import com.google.android.gms.wearable.DataMapItem
+import com.google.android.gms.wearable.WearableListenerService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+
+private val Context.dataStore by preferencesDataStore(name = "user_prefs")
+
+class DataLayerListenerService : WearableListenerService() {
+
+    private val serviceJob = SupervisorJob()
+    private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
+
+    override fun onDataChanged(dataEvents: DataEventBuffer) {
+        super.onDataChanged(dataEvents)
+        dataEvents.forEach { event ->
+            if (event.type == com.google.android.gms.wearable.DataEvent.TYPE_CHANGED) {
+                val dataMapItem = DataMapItem.fromDataItem(event.dataItem)
+                val vCardId = dataMapItem.dataMap.getString("vcard_id")
+                if (event.dataItem.uri.path == "/user_data" && vCardId != null) {
+                    Log.d("DataLayerListener", "Received VCardId: $vCardId")
+                    // Update the in-memory cache for the NFC service
+                    MennuHostApduService.vCardId = vCardId
+                    // Persist to DataStore for the UI and tile
+                    serviceScope.launch {
+                        saveVCardIdToDataStore(vCardId)
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun saveVCardIdToDataStore(vCardId: String) {
+        dataStore.edit { preferences ->
+            val key = stringPreferencesKey("vcard_id")
+            preferences[key] = vCardId
+            Log.d("DataLayerListener", "Saved VCardId to DataStore.")
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        serviceJob.cancel()
+    }
+}

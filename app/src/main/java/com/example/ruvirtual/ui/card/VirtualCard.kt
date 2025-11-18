@@ -38,7 +38,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.ruvirtual.ui.theme.VirtualCardBackground
 import kotlinx.coroutines.launch
 
@@ -122,15 +121,13 @@ fun VirtualCard(nome: String, matricula: String, modifier: Modifier = Modifier) 
                 Text(
                     text = formattedMatricula,
                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f), // Updated to use theme color
-                    fontSize = 22.sp,
-                    letterSpacing = 2.sp
+                    style = MaterialTheme.typography.headlineSmall
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = nome.uppercase(),
                     color = MaterialTheme.colorScheme.onPrimary, // Updated to use theme color
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium
+                    style = MaterialTheme.typography.titleMedium
                 )
             }
         }

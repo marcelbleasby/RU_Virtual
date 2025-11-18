@@ -151,10 +151,10 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
         return
     }
 
-    val nome = provisionResponse!!.nome ?: "Usuário Desconhecido"
-    val matricula = provisionResponse!!.matricula ?: "Matrícula Não Informada"
-    val creditos = provisionResponse!!.creditos ?: 0
-    val transacoes = provisionResponse!!.transacoes ?: emptyList()
+    val nome = provisionResponse?.nome ?: "Usuário Desconhecido"
+    val matricula = provisionResponse?.matricula ?: "Matrícula Não Informada"
+    val creditos = provisionResponse?.creditos ?: 0
+    val transacoes = provisionResponse?.transacoes ?: emptyList()
 
     var showNfcAnimation by remember { mutableStateOf(false) }
 

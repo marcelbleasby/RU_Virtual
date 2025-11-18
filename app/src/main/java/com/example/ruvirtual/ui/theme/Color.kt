@@ -218,8 +218,4 @@ val surfaceContainerHighDarkHighContrast = Color(0xFF3C3B3B)
 val surfaceContainerHighestDarkHighContrast = Color(0xFF484646)
 
 
-
-
-
-
-
+val VirtualCardBackground = Color(0xFF3A3A3A)

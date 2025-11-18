@@ -31,7 +31,6 @@ import com.example.ruvirtual.ui.theme.RUVirtualTheme // Importar seu tema
 
 // Importe stringResource e colorResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.colorResource
 // Se você definiu cores no tema M3:
 import androidx.compose.material3.MaterialTheme
 import com.example.ruvirtual.R // Importa a classe R para acessar recursos
@@ -115,7 +114,7 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
                     containerColor = MaterialTheme.colorScheme.primary // Usar cor primária do tema
                 )
             ) {
-                Text(stringResource(R.string.button_entrar), color = MaterialTheme.colorScheme.onPrimary) // String hardcoded
+                Text(stringResource(R.string.button_entrar))
             }
         }
     }

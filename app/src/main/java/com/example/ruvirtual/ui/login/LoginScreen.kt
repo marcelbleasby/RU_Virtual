@@ -77,6 +77,7 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
             viewModel.onErrorMessageShown() // Clear the error message after showing
         }
     }
+    
     RUVirtualTheme {
         Column(
             modifier = Modifier
@@ -111,7 +112,9 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
                     }
                 }
             )
+            
             Spacer(modifier = Modifier.height(8.dp)) // Dimensão hardcoded
+            
             OutlinedTextField(
                 value = senha,
                 onValueChange = viewModel::onSenhaChange,
@@ -125,7 +128,9 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
                     }
                 }
             )
+            
             Spacer(modifier = Modifier.height(16.dp)) // Dimensão hardcoded
+            
             Button(
                 onClick = viewModel::onLoginClicked,
                 colors = ButtonDefaults.buttonColors(

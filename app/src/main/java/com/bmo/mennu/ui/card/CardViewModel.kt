@@ -3,24 +3,39 @@ package com.bmo.mennu.ui.card
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bmo.mennu.data.UserDataHolder
+import com.bmo.mennu.data.AuthRepository
+import com.bmo.mennu.data.MealHistoryResult
+import com.bmo.mennu.data.MealRepository
 import com.bmo.mennu.data.UserRepository
-import com.bmo.mennu.data.model.ProvisionResponse
-import com.bmo.mennu.data.remote.ApiService
+import com.bmo.mennu.data.model.RefeicaoServida
+import com.bmo.mennu.data.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
+
+data class CardUiState(
+    val user: User? = null,
+    val historico: List<RefeicaoServida> = emptyList(),
+    val refeicoesEsteMes: Int? = null,
+    // Gap documentado: fica true quando a conta não tem o Cargo/permissão
+    // "refeicaoservida.view.list" liberado no mennu-api pra ver o próprio consumo.
+    val consumoIndisponivel: Boolean = false
+)
 
 @HiltViewModel
 class CardViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val apiService: ApiService
+    private val authRepository: AuthRepository,
+    private val mealRepository: MealRepository
 ) : ViewModel() {
 
-    private val _provisionResponse = MutableStateFlow<ProvisionResponse?>(null)
-    val provisionResponse = _provisionResponse.asStateFlow()
+    private val _uiState = MutableStateFlow<CardUiState?>(null)
+    val uiState = _uiState.asStateFlow()
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
@@ -29,48 +44,65 @@ class CardViewModel @Inject constructor(
     val errorMessage = _errorMessage.asStateFlow()
 
     init {
-        // Load initial data from UserDataHolder if available, then refresh if needed
-        if (UserDataHolder.provisionResponse == null) {
-            refreshCardData(true) // Attempt to load if UserDataHolder is empty
-        } else {
-            _provisionResponse.value = UserDataHolder.provisionResponse
-        }
+        refreshCardData(initialLoad = true)
     }
 
     fun refreshCardData(initialLoad: Boolean = false) {
-        if (!initialLoad && _isRefreshing.value) return // Prevent multiple simultaneous refreshes
+        if (!initialLoad && _isRefreshing.value) return
 
         _isRefreshing.value = true
         viewModelScope.launch {
             try {
-                // For refresh, we'll try to get card details, assuming it doesn't need login credentials again.
-                // If your API requires user identification for getCardDetails, you might need a token or ID.
-                // For now, let's assume it's a simple GET.
-                val response = apiService.getCardDetails()
-                if (response.isSuccessful) {
-                    response.body()?.let {
-                        UserDataHolder.provisionResponse = it // Update global holder
-                        _provisionResponse.value = it // Update ViewModel's state
-                        _errorMessage.value = null
-                        Log.d("CardViewModel", "Card data refreshed successfully.")
-                    } ?: run {
-                        _errorMessage.value = "Resposta inesperada do servidor ao carregar detalhes do cartão."
-                        Log.e("CardViewModel", "Empty body received for card details.")
+                val user = userRepository.getUser() ?: authRepository.refreshUsuarioAtivo().getOrNull()
+                if (user == null) {
+                    _errorMessage.value = "Sessão expirada. Faça login novamente."
+                    _uiState.value = null
+                    return@launch
+                }
+
+                when (val meals = mealRepository.getRefeicoesServidas(user.id)) {
+                    is MealHistoryResult.Success -> {
+                        val refeicoesEsteMes = meals.refeicoes.count { isNoMesAtual(it.dataHora) }
+                        userRepository.updateRefeicoesMes(refeicoesEsteMes)
+                        _uiState.value = CardUiState(
+                            user = user,
+                            historico = meals.refeicoes,
+                            refeicoesEsteMes = refeicoesEsteMes
+                        )
                     }
-                } else {
-                    _errorMessage.value = "Erro ao carregar detalhes do cartão: ${response.code()} - ${response.message()}"
-                    Log.e("CardViewModel", "API error: ${response.code()} - ${response.message()}")
+                    is MealHistoryResult.Unavailable -> {
+                        _uiState.value = CardUiState(user = user, consumoIndisponivel = true)
+                    }
+                    is MealHistoryResult.Failure -> {
+                        _uiState.value = CardUiState(user = user)
+                        _errorMessage.value = meals.message
+                    }
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Erro de conexão ao carregar detalhes do cartão: ${e.localizedMessage ?: "Tente novamente."}"
-                Log.e("CardViewModel", "Network error during card data refresh", e)
+                Log.e("CardViewModel", "Erro ao carregar dados do cartão", e)
+                _errorMessage.value = e.localizedMessage ?: "Erro de conexão. Tente novamente."
             } finally {
                 _isRefreshing.value = false
             }
         }
     }
 
+    fun onLogoutClicked() {
+        viewModelScope.launch {
+            authRepository.logout()
+        }
+    }
+
     fun errorMessageShown() {
         _errorMessage.value = null
+    }
+
+    private fun isNoMesAtual(iso: String): Boolean {
+        return try {
+            val mesAtual = SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(Date())
+            iso.startsWith(mesAtual)
+        } catch (e: Exception) {
+            false
+        }
     }
 }

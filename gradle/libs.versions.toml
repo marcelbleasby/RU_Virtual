@@ -26,7 +26,7 @@ composeMaterial = "1.5.5"
 composeFoundation = "1.5.5"
 wearToolingPreview = "1.0.0"
 coreSplashscreen = "1.2.0"
-wearTiles = "1.0.0-alpha01"
+wearTiles = "1.4.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -58,7 +58,7 @@ androidx-compose-material = { group = "androidx.wear.compose", name = "compose-m
 androidx-compose-foundation = { group = "androidx.wear.compose", name = "compose-foundation", version.ref = "composeFoundation" }
 androidx-wear-tooling-preview = { group = "androidx.wear", name = "wear-tooling-preview", version.ref = "wearToolingPreview" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
-androidx-wear-tiles = { group = "androidx.wear", name = "wear-tiles", version.ref = "wearTiles" }
+androidx-wear-tiles = { group = "androidx.wear.tiles", name = "tiles", version.ref = "wearTiles" }
 
 
 [plugins]

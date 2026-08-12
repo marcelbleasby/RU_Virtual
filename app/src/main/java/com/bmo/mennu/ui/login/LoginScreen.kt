@@ -34,20 +34,18 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltViewModel()) {
-    val matricula by viewModel.matricula.collectAsState()
+    val email by viewModel.email.collectAsState()
     val senha by viewModel.senha.collectAsState()
     val loginResult by viewModel.loginResult.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
-    val isMatriculaError by viewModel.isMatriculaError.collectAsState()
+    val isEmailError by viewModel.isEmailError.collectAsState()
     val isSenhaError by viewModel.isSenhaError.collectAsState()
     val context = LocalContext.current
 
     LaunchedEffect(loginResult) {
         loginResult?.let {
-            if (it.nome != null) {
-                navController.navigate("card")
-                viewModel.onNavigated()
-            }
+            navController.navigate("card")
+            viewModel.onNavigated()
         }
     }
 
@@ -66,13 +64,13 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             OutlinedTextField(
-                value = matricula,
-                onValueChange = viewModel::onMatriculaChange,
-                label = { Text(stringResource(R.string.label_matricula)) }, // String hardcoded
-                isError = isMatriculaError,
+                value = email,
+                onValueChange = viewModel::onEmailChange,
+                label = { Text(stringResource(R.string.label_email)) },
+                isError = isEmailError,
                 supportingText = {
-                    if (isMatriculaError) {
-                        Text(stringResource(R.string.error_matricula_empty), color = MaterialTheme.colorScheme.error) // String hardcoded
+                    if (isEmailError) {
+                        Text(stringResource(R.string.error_email_empty), color = MaterialTheme.colorScheme.error)
                     }
                 }
             )

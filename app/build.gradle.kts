@@ -19,6 +19,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // IMPORTANTE: Substitua pelo IP do mennu-api na sua rede local (uvicorn roda na porta 8010).
+        buildConfigField("String", "API_BASE_URL", "\"http://10.5.40.175:8010/\"")
     }
 
     buildTypes {
@@ -41,6 +44,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()

@@ -5,4 +5,6 @@
     values-round/strings.xml for round devices.
     -->
     <string name="hello_world">From the Square world,\nHello, %1$s!</string>
+    <string name="balance_tile_label">Refeições</string>
+    <string name="balance_tile_description">Mostra o consumo de refeições do período</string>
 </resources>

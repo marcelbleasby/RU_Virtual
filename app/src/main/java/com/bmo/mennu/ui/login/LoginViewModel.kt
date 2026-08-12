@@ -2,10 +2,8 @@ package com.bmo.mennu.ui.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bmo.mennu.data.UserRepository
-import com.bmo.mennu.data.model.LoginRequest
+import com.bmo.mennu.data.AuthRepository
 import com.bmo.mennu.data.model.User
-import com.bmo.mennu.data.remote.ApiService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,12 +12,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val userRepository: UserRepository,
-    private val apiService: ApiService
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    private val _matricula = MutableStateFlow("")
-    val matricula = _matricula.asStateFlow()
+    private val _email = MutableStateFlow("")
+    val email = _email.asStateFlow()
 
     private val _senha = MutableStateFlow("")
     val senha = _senha.asStateFlow()
@@ -30,15 +27,15 @@ class LoginViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage = _errorMessage.asStateFlow()
 
-    private val _isMatriculaError = MutableStateFlow(false)
-    val isMatriculaError = _isMatriculaError.asStateFlow()
+    private val _isEmailError = MutableStateFlow(false)
+    val isEmailError = _isEmailError.asStateFlow()
 
     private val _isSenhaError = MutableStateFlow(false)
     val isSenhaError = _isSenhaError.asStateFlow()
 
-    fun onMatriculaChange(newValue: String) {
-        _matricula.value = newValue
-        _isMatriculaError.value = false
+    fun onEmailChange(newValue: String) {
+        _email.value = newValue
+        _isEmailError.value = false
     }
 
     fun onSenhaChange(newValue: String) {
@@ -47,12 +44,12 @@ class LoginViewModel @Inject constructor(
     }
 
     fun onLoginClicked() {
-        val currentMatricula = matricula.value
+        val currentEmail = email.value
         val currentSenha = senha.value
 
-        if (currentMatricula.isBlank()) {
-            _isMatriculaError.value = true
-            _errorMessage.value = "A matrícula não pode estar vazia."
+        if (currentEmail.isBlank()) {
+            _isEmailError.value = true
+            _errorMessage.value = "O e-mail não pode estar vazio."
             return
         }
         if (currentSenha.isBlank()) {
@@ -62,29 +59,14 @@ class LoginViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            try {
-                val response = apiService.provisionCard(LoginRequest(currentMatricula, currentSenha))
-                if (response.isSuccessful) {
-                    response.body()?.let {
-                        val user = User(
-                            vCardId = it.vCardId,
-                            nome = it.nome,
-                            matricula = it.matricula,
-                            creditos = it.creditos,
-                            transacoes = it.transacoes
-                        )
-                        userRepository.saveUser(user)
-                        _loginResult.value = user
-                        _errorMessage.value = null
-                    } ?: run {
-                        _errorMessage.value = "Resposta inesperada do servidor."
-                    }
-                } else {
-                    _errorMessage.value = "Erro de login: ${response.message()}"
+            authRepository.login(currentEmail, currentSenha)
+                .onSuccess {
+                    _loginResult.value = it
+                    _errorMessage.value = null
                 }
-            } catch (e: Exception) {
-                _errorMessage.value = "Erro de conexão: ${e.localizedMessage ?: "Tente novamente."}"
-            }
+                .onFailure {
+                    _errorMessage.value = it.localizedMessage ?: "Erro de conexão. Tente novamente."
+                }
         }
     }
 

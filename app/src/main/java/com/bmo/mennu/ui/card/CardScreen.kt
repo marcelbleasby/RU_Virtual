@@ -30,7 +30,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Nfc
@@ -53,6 +52,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.bmo.mennu.data.model.RefeicaoServida
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -95,7 +95,7 @@ fun formatIsoToLocal(iso: String?): String {
 
 @Composable
 fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hiltViewModel()) {
-    val provisionResponse by viewModel.provisionResponse.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
@@ -108,9 +108,8 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
         }
     }
 
-
-    // If provisionResponse is null AND it's not currently refreshing (initial load failed or no data)
-    if (provisionResponse == null && !isRefreshing) {
+    // Se não há estado carregado e não está atualizando: sessão ausente/expirada.
+    if (uiState == null && !isRefreshing) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -135,8 +134,7 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
         return
     }
 
-    // If provisionResponse is null but still refreshing (initial load in progress)
-    if (provisionResponse == null) { // This case handles when initial data is null but a refresh is in progress
+    if (uiState == null) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -144,16 +142,14 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Show a simple loading indicator or message during initial refresh
             Text("Carregando dados do cartão...", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleMedium)
         }
         return
     }
 
-    val nome = provisionResponse?.nome ?: "Usuário Desconhecido"
-    val matricula = provisionResponse?.matricula ?: "Matrícula Não Informada"
-    val creditos = provisionResponse?.creditos ?: 0
-    val transacoes = provisionResponse?.transacoes ?: emptyList()
+    val state = uiState!!
+    val nome = state.user?.nome ?: "Usuário Desconhecido"
+    val identificador = state.user?.matricula ?: state.user?.email ?: "-"
 
     var showNfcAnimation by remember { mutableStateOf(false) }
 
@@ -199,6 +195,7 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
                     contentDescription = "Sair da conta",
                     tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.clickable {
+                        viewModel.onLogoutClicked()
                         navController.popBackStack("login", inclusive = false)
                     }
                 )
@@ -217,7 +214,7 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
             )
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Card 1: Refeições Disponíveis e Dados do Usuário
+            // Card 1: Consumo do período e dados do usuário
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -235,17 +232,23 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
                     ) {
                         Column {
                             Text(
-                                text = "Refeições disponíveis",
+                                text = "Refeições este mês",
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 style = MaterialTheme.typography.bodyMedium,
                             )
-                            val availableMeals = creditos.toInt()
-
-                            Text(
-                                text = "$availableMeals",
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                style = MaterialTheme.typography.displayMedium
-                            )
+                            if (state.consumoIndisponivel) {
+                                Text(
+                                    text = "Indisponível",
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            } else {
+                                Text(
+                                    text = "${state.refeicoesEsteMes ?: 0}",
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    style = MaterialTheme.typography.displayMedium
+                                )
+                            }
                         }
                         Icon(
                             imageVector = Icons.Default.CreditCard,
@@ -270,7 +273,7 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
                                 style = MaterialTheme.typography.bodyMedium
                             )
                             Text(
-                                text = matricula,
+                                text = identificador,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 style = MaterialTheme.typography.bodyLarge
                             )
@@ -335,10 +338,10 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
                         }
                     }
 
-                    // Card number (matricula) and name
+                    // Card number (identificador) and name
                     Column {
                         Text(
-                            text = matricula,
+                            text = identificador,
                             color = MaterialTheme.colorScheme.onPrimary, // Using onPrimaryDark for text on the virtual card
                             style = MaterialTheme.typography.headlineMedium
                         )
@@ -372,87 +375,93 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
             }
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Lista de Transações Recentes
+            // Histórico de refeições servidas
             Text(
-                text = "Transações recentes",
+                text = "Refeições recentes",
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            // Verifica se há transações antes de exibir a LazyColumn
-            if (transacoes.isNotEmpty()) {
+            if (state.consumoIndisponivel) {
+                Text(
+                    text = "Histórico indisponível para esta conta.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            } else if (state.historico.isNotEmpty()) {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(max = 300.dp)
                 ) {
-                    items(transacoes) { transaction ->
-                        val isRecarga = transaction.valor >= 0
-                        val iconTint = if (isRecarga) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error
-                        val iconBackground = if (isRecarga) MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.errorContainer
-
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                            ),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = if (isRecarga) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
-                                        contentDescription = "Ícone de transação de ${transaction.tipo} ${transaction.local ?: ""}", // Updated
-                                        tint = iconTint,
-                                        modifier = Modifier
-                                            .size(40.dp)
-                                            .clip(CircleShape)
-                                            .background(iconBackground)
-                                            .padding(8.dp)
-                                    )
-                                    Spacer(modifier = Modifier.size(16.dp))
-                                    Column {
-                                        Text(
-                                            text = transaction.tipo,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            style = MaterialTheme.typography.bodyLarge
-                                        )
-                                        Text(
-                                            text = formatIsoToLocal(transaction.data), // 'data' is correct
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
-                                    }
-                                }
-                                Text(
-                                    text = (if (isRecarga) "+ " else "- ") + "R$ %.2f".format(kotlin.math.abs(transaction.valor)), // Updated
-                                    color = iconTint,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+                    items(state.historico) { refeicao ->
+                        RefeicaoServidaItem(refeicao)
                     }
                 }
             } else {
                 Text(
-                    text = "Nenhuma transação recente.",
+                    text = "Nenhuma refeição registrada.",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
         }
+    }
+}
 
-
+@Composable
+private fun RefeicaoServidaItem(refeicao: RefeicaoServida) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.ArrowDownward,
+                    contentDescription = "Refeição servida em ${refeicao.unidadeNome ?: "unidade desconhecida"}",
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.errorContainer)
+                        .padding(8.dp)
+                )
+                Spacer(modifier = Modifier.size(16.dp))
+                Column {
+                    Text(
+                        text = refeicao.unidadeNome ?: "Refeição",
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = formatIsoToLocal(refeicao.dataHora),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+            if (refeicao.manual) {
+                Text(
+                    text = "Manual",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+        }
     }
 }

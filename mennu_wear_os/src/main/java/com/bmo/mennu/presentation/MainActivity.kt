@@ -29,13 +29,14 @@ class MainActivity : ComponentActivity() {
                 factory = MainViewModelFactory(LocalContext.current)
             )
             val vCardId by viewModel.vCardId.collectAsState()
-            WearApp(vCardId = vCardId)
+            val refeicoesMes by viewModel.refeicoesMes.collectAsState()
+            WearApp(vCardId = vCardId, refeicoesMes = refeicoesMes)
         }
     }
 }
 
 @Composable
-fun WearApp(vCardId: String?) {
+fun WearApp(vCardId: String?, refeicoesMes: Int?) {
     val context = LocalContext.current
     val remoteActivityHelper = RemoteActivityHelper(context)
 
@@ -43,23 +44,39 @@ fun WearApp(vCardId: String?) {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        if (vCardId != null) {
+        if (refeicoesMes != null || vCardId != null) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxSize()
             ) {
-                Text(
-                    text = "VCard ID:",
-                    style = MaterialTheme.typography.title3,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = vCardId,
-                    style = MaterialTheme.typography.body1,
-                    textAlign = TextAlign.Center
-                )
+                if (refeicoesMes != null) {
+                    Text(
+                        text = "Refeições este mês:",
+                        style = MaterialTheme.typography.title3,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "$refeicoesMes",
+                        style = MaterialTheme.typography.body1,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+                if (vCardId != null) {
+                    Text(
+                        text = "VCard ID:",
+                        style = MaterialTheme.typography.title3,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = vCardId,
+                        style = MaterialTheme.typography.body1,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         } else {
             Column(
@@ -68,7 +85,7 @@ fun WearApp(vCardId: String?) {
                 modifier = Modifier.fillMaxSize()
             ) {
                 Text(
-                    text = "Please log in on your phone to use the app.",
+                    text = "Por favor cadastre no app primeiro",
                     style = MaterialTheme.typography.body1,
                     textAlign = TextAlign.Center
                 )
@@ -87,7 +104,7 @@ fun WearApp(vCardId: String?) {
                         }
                     }
                 }) {
-                    Text(text = "Open on Phone")
+                    Text(text = "Abra o app no seu smartphone")
                 }
             }
         }

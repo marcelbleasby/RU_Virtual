@@ -1,6 +1,10 @@
 package com.bmo.mennu.data.model
 
+import com.google.gson.annotations.SerializedName
+
 data class LoginRequest(
-    val matricula: String,
-    val senha: String
+    @SerializedName("email")
+    val email: String,
+    @SerializedName("password")
+    val password: String
 )

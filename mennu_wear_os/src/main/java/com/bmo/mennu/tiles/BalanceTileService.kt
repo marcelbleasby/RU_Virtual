@@ -1,8 +1,10 @@
 package com.bmo.mennu.tiles
 
 import android.content.Context
-import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.wear.tiles.TileService
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+
 import androidx.wear.tiles.DeviceParametersBuilders
 import androidx.wear.tiles.DimensionBuilders
 import androidx.wear.tiles.LayoutElementBuilders
@@ -10,8 +12,7 @@ import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.ResourceBuilders
 import androidx.wear.tiles.TileBuilders
 import androidx.wear.tiles.TimelineBuilders
-import androidx.wear.tiles.TileService
-import androidx.wear.tiles.builders.TimelineBuilders
+
 import com.google.common.util.concurrent.Futures
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,17 +28,17 @@ class BalanceTileService : TileService() {
     private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
 
     override fun onTileRequest(requestParams: RequestBuilders.TileRequest) = serviceScope.future {
-        val vCardId = vCardId()
-        TileBuilders.Tile.builder()
+        val refeicoesMes = refeicoesMes()
+        TileBuilders.Tile.Builder()
             .setResourcesVersion(RESOURCES_VERSION)
             .setTimeline(
-                TimelineBuilders.Timeline.builder()
+                TimelineBuilders.Timeline.Builder()
                     .addTimelineEntry(
-                        TimelineBuilders.TimelineEntry.builder()
+                        TimelineBuilders.TimelineEntry.Builder()
                             .setLayout(
-                                LayoutElementBuilders.Layout.builder()
+                                LayoutElementBuilders.Layout.Builder()
                                     .setRoot(
-                                        layout(vCardId, requestParams.deviceParameters!!)
+                                        layout(refeicoesMes, requestParams.deviceParameters!!)
                                     ).build()
                             ).build()
                     ).build()
@@ -45,7 +46,7 @@ class BalanceTileService : TileService() {
     }
 
     override fun onResourcesRequest(requestParams: RequestBuilders.ResourcesRequest) = Futures.immediateFuture(
-        ResourceBuilders.Resources.builder()
+        ResourceBuilders.Resources.Builder()
             .setVersion(RESOURCES_VERSION)
             .build()
     )
@@ -55,18 +56,18 @@ class BalanceTileService : TileService() {
         serviceJob.cancel()
     }
 
-    private suspend fun vCardId(): String {
-        val key = stringPreferencesKey("vcard_id")
+    private suspend fun refeicoesMes(): Int? {
+        val key = intPreferencesKey("refeicoes_mes")
         val preferences = dataStore.data.first()
-        return preferences[key] ?: "N/A"
+        return preferences[key]
     }
 
-    private fun layout(vCardId: String, deviceParameters: DeviceParametersBuilders.DeviceParameters) = LayoutElementBuilders.Box.builder()
+    private fun layout(refeicoesMes: Int?, deviceParameters: DeviceParametersBuilders.DeviceParameters) = LayoutElementBuilders.Box.Builder()
         .setWidth(DimensionBuilders.expand())
         .setHeight(DimensionBuilders.expand())
         .addContent(
-            LayoutElementBuilders.Text.builder()
-                .setText("VCard ID: $vCardId")
+            LayoutElementBuilders.Text.Builder()
+                .setText(if (refeicoesMes != null) "Refeições este mês: $refeicoesMes" else "Indisponível")
                 .build()
         )
         .build()

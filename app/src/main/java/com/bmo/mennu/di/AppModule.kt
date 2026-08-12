@@ -2,8 +2,10 @@ package com.bmo.mennu.di
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.bmo.mennu.BuildConfig
 import com.bmo.mennu.data.UserRepository
 import com.bmo.mennu.data.remote.ApiService
+import com.bmo.mennu.data.remote.AuthInterceptor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,9 +22,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-
-    // IMPORTANTE: Substitua "YOUR_COMPUTER_IP" pelo IP do seu computador na rede local.
-    private const val BASE_URL = "http://192.168.68.106:3000/"
 
     @Provides
     @Singleton
@@ -45,11 +44,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {1855422984
-
-        val logging = HttpLoggingInterceptor()
-        logging.setLevel(HttpLoggingInterceptor.Level.BODY)
+    fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
+        val logging = HttpLoggingInterceptor().apply {
+            // Nunca logar Authorization/body em release — evita vazar token/senha no logcat.
+            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
+        }
         return OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
             .addInterceptor(logging)
             .build()
     }
@@ -58,7 +59,7 @@ object AppModule {
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(BuildConfig.API_BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

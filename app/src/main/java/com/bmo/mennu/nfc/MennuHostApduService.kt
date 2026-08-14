@@ -3,6 +3,7 @@ package com.bmo.mennu.nfc
 import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
+import com.bmo.mennu.data.NfcTapEventBus
 import com.bmo.mennu.data.UserRepository
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -16,9 +17,11 @@ class MennuHostApduService : HostApduService() {
     @InstallIn(SingletonComponent::class)
     interface MennuHostApduServiceEntryPoint {
         fun userRepository(): UserRepository
+        fun nfcTapEventBus(): NfcTapEventBus
     }
 
     private var userRepository: UserRepository? = null
+    private var nfcTapEventBus: NfcTapEventBus? = null
 
     private val SELECT_APDU_HEADER = "00A40400"
     private val APP_AID = "F0010203040506"
@@ -37,6 +40,17 @@ class MennuHostApduService : HostApduService() {
             userRepository = hiltEntryPoint.userRepository()
         }
         return userRepository!!
+    }
+
+    private fun getNfcTapEventBus(): NfcTapEventBus {
+        if (nfcTapEventBus == null) {
+            val hiltEntryPoint = EntryPointAccessors.fromApplication(
+                applicationContext,
+                MennuHostApduServiceEntryPoint::class.java
+            )
+            nfcTapEventBus = hiltEntryPoint.nfcTapEventBus()
+        }
+        return nfcTapEventBus!!
     }
 
     override fun processCommandApdu(commandApdu: ByteArray, extras: Bundle?): ByteArray {
@@ -63,6 +77,7 @@ class MennuHostApduService : HostApduService() {
                         vCardBytes.copyOfRange(0, MAX_RESPONSE_SIZE)
                     } else vCardBytes
 
+                    getNfcTapEventBus().emitTap()
                     return payload + SW_OK
                 }
             }

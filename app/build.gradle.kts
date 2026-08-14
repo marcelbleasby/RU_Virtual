@@ -20,8 +20,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // IMPORTANTE: Substitua pelo IP do mennu-api na sua rede local (uvicorn roda na porta 8010).
-        buildConfigField("String", "API_BASE_URL", "\"http://10.5.40.175:8010/\"")
+        buildConfigField("String", "API_BASE_URL", "\"https://mennu-hom.bmo.dev.br/\"")
     }
 
     buildTypes {
@@ -59,6 +58,7 @@ dependencies {
 
     // --- Compose ---
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)

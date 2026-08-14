@@ -17,34 +17,37 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.bmo.mennu.ui.theme.MennuTheme // Importar seu tema
 import androidx.compose.ui.res.stringResource
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.res.painterResource
 import com.bmo.mennu.R
+import com.bmo.mennu.ui.navigation.Screen
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltViewModel()) {
-    val email by viewModel.email.collectAsState()
-    val senha by viewModel.senha.collectAsState()
-    val loginResult by viewModel.loginResult.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
-    val isEmailError by viewModel.isEmailError.collectAsState()
-    val isSenhaError by viewModel.isSenhaError.collectAsState()
+    val email by viewModel.email.collectAsStateWithLifecycle()
+    val senha by viewModel.senha.collectAsStateWithLifecycle()
+    val loginResult by viewModel.loginResult.collectAsStateWithLifecycle()
+    val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
+    val isEmailError by viewModel.isEmailError.collectAsStateWithLifecycle()
+    val isSenhaError by viewModel.isSenhaError.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     LaunchedEffect(loginResult) {
         loginResult?.let {
-            navController.navigate("card")
+            navController.navigate(Screen.Home.route) {
+                popUpTo(Screen.Login.route) { inclusive = true }
+            }
             viewModel.onNavigated()
         }
     }

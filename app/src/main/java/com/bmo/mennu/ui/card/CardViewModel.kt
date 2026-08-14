@@ -6,6 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.bmo.mennu.data.AuthRepository
 import com.bmo.mennu.data.MealHistoryResult
 import com.bmo.mennu.data.MealRepository
+import com.bmo.mennu.data.NfcHardwareState
+import com.bmo.mennu.data.NfcStatusRepository
+import com.bmo.mennu.data.NfcTapEventBus
+import com.bmo.mennu.data.PlanoInfo
+import com.bmo.mennu.data.PlanoRepository
 import com.bmo.mennu.data.UserRepository
 import com.bmo.mennu.data.model.RefeicaoServida
 import com.bmo.mennu.data.model.User
@@ -24,14 +29,18 @@ data class CardUiState(
     val refeicoesEsteMes: Int? = null,
     // Gap documentado: fica true quando a conta não tem o Cargo/permissão
     // "refeicaoservida.view.list" liberado no mennu-api pra ver o próprio consumo.
-    val consumoIndisponivel: Boolean = false
+    val consumoIndisponivel: Boolean = false,
+    val planoInfo: PlanoInfo? = null
 )
 
 @HiltViewModel
 class CardViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val authRepository: AuthRepository,
-    private val mealRepository: MealRepository
+    private val mealRepository: MealRepository,
+    private val planoRepository: PlanoRepository,
+    private val nfcTapEventBus: NfcTapEventBus,
+    private val nfcStatusRepository: NfcStatusRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<CardUiState?>(null)
@@ -43,8 +52,17 @@ class CardViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage = _errorMessage.asStateFlow()
 
+    private val _tapDetected = MutableStateFlow<Long?>(null)
+    val tapDetected = _tapDetected.asStateFlow()
+
+    val nfcHardwareState = nfcStatusRepository.hardwareState
+    val emulationAtiva = nfcStatusRepository.emulationAtiva
+
     init {
         refreshCardData(initialLoad = true)
+        viewModelScope.launch {
+            nfcTapEventBus.tapEvents.collect { timestamp -> _tapDetected.value = timestamp }
+        }
     }
 
     fun refreshCardData(initialLoad: Boolean = false) {
@@ -60,6 +78,7 @@ class CardViewModel @Inject constructor(
                     return@launch
                 }
 
+                val planoInfo = planoRepository.getPlanoInfo()
                 when (val meals = mealRepository.getRefeicoesServidas(user.id)) {
                     is MealHistoryResult.Success -> {
                         val refeicoesEsteMes = meals.refeicoes.count { isNoMesAtual(it.dataHora) }
@@ -67,14 +86,15 @@ class CardViewModel @Inject constructor(
                         _uiState.value = CardUiState(
                             user = user,
                             historico = meals.refeicoes,
-                            refeicoesEsteMes = refeicoesEsteMes
+                            refeicoesEsteMes = refeicoesEsteMes,
+                            planoInfo = planoInfo
                         )
                     }
                     is MealHistoryResult.Unavailable -> {
-                        _uiState.value = CardUiState(user = user, consumoIndisponivel = true)
+                        _uiState.value = CardUiState(user = user, consumoIndisponivel = true, planoInfo = planoInfo)
                     }
                     is MealHistoryResult.Failure -> {
-                        _uiState.value = CardUiState(user = user)
+                        _uiState.value = CardUiState(user = user, planoInfo = planoInfo)
                         _errorMessage.value = meals.message
                     }
                 }
@@ -96,6 +116,14 @@ class CardViewModel @Inject constructor(
     fun errorMessageShown() {
         _errorMessage.value = null
     }
+
+    fun tapEventShown() {
+        _tapDetected.value = null
+    }
+
+    fun onNfcHardwareStateChanged(state: NfcHardwareState) = nfcStatusRepository.updateHardwareState(state)
+
+    fun onEmulationActiveChanged(ativa: Boolean) = nfcStatusRepository.setEmulationAtiva(ativa)
 
     private fun isNoMesAtual(iso: String): Boolean {
         return try {

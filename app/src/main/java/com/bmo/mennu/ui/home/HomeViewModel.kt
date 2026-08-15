@@ -5,17 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.bmo.mennu.data.AuthRepository
 import com.bmo.mennu.data.PlanoRepository
 import com.bmo.mennu.data.UserRepository
+import com.bmo.mennu.ui.cardapio.DietTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-enum class DietTag(val label: String) {
-    VEGETARIANO("Vegetariano"),
-    VEGANO("Vegano"),
-    SEM_GLUTEN("Sem Glúten")
-}
 
 data class PratoDoDia(val nome: String, val tags: List<DietTag>)
 

@@ -5,11 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.bmo.mennu.data.AuthRepository
 import com.bmo.mennu.data.CardapioRepository
 import com.bmo.mennu.data.UserRepository
+import com.bmo.mennu.util.mondayOfCurrentWeek
+import com.bmo.mennu.util.shiftWeek
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.util.Calendar
 import java.util.Date
 import javax.inject.Inject
 
@@ -36,6 +38,14 @@ data class CardapioUiState(
         .filter { selectedDay?.meals?.get(it)?.isNotEmpty() == true }
 }
 
+// resetSelection=true (navegação de semana): reseta o dia selecionado pra segunda.
+// resetSelection=false (pull-to-refresh): preserva dia/filtro que o usuário já escolheu.
+internal fun CardapioUiState.withFetchedWeek(days: List<DayMenu>, resetSelection: Boolean): CardapioUiState = copy(
+    isLoading = false,
+    weekDays = days,
+    selectedDayIndex = if (resetSelection) 0 else selectedDayIndex
+)
+
 @HiltViewModel
 class CardapioViewModel @Inject constructor(
     private val cardapioRepository: CardapioRepository,
@@ -49,7 +59,11 @@ class CardapioViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage = _errorMessage.asStateFlow()
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+
     private var weekStart: Date = mondayOfCurrentWeek()
+    private var loadJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -57,7 +71,7 @@ class CardapioViewModel @Inject constructor(
             val primeiroNome = user?.nome?.trim()?.substringBefore(" ")?.takeIf { it.isNotBlank() } ?: "Usuário"
             _uiState.value = _uiState.value.copy(nomeExibicao = primeiroNome)
         }
-        loadWeek()
+        loadWeek(resetSelection = true)
     }
 
     fun onDaySelected(index: Int) {
@@ -70,12 +84,18 @@ class CardapioViewModel @Inject constructor(
 
     fun onPreviousWeek() {
         weekStart = shiftWeek(weekStart, -7)
-        loadWeek()
+        loadWeek(resetSelection = true)
     }
 
     fun onNextWeek() {
         weekStart = shiftWeek(weekStart, 7)
-        loadWeek()
+        loadWeek(resetSelection = true)
+    }
+
+    fun refresh() {
+        if (_isRefreshing.value) return
+        _isRefreshing.value = true
+        loadWeek(resetSelection = false)
     }
 
     fun onLogoutClicked() {
@@ -86,35 +106,19 @@ class CardapioViewModel @Inject constructor(
         _errorMessage.value = null
     }
 
-    private fun loadWeek() {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+    private fun loadWeek(resetSelection: Boolean) {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
+            if (resetSelection) _uiState.value = _uiState.value.copy(isLoading = true)
             try {
                 val days = cardapioRepository.getWeekMenu(weekStart)
-                _uiState.value = _uiState.value.copy(isLoading = false, weekDays = days, selectedDayIndex = 0)
+                _uiState.value = _uiState.value.withFetchedWeek(days, resetSelection)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false)
                 _errorMessage.value = e.localizedMessage ?: "Erro de conexão. Tente novamente."
+            } finally {
+                _isRefreshing.value = false
             }
         }
     }
-}
-
-private fun mondayOfCurrentWeek(): Date {
-    val calendar = Calendar.getInstance()
-    // DAY_OF_WEEK: domingo=1 ... sábado=7. Normaliza pra dias desde segunda (0..6),
-    // independente do "primeiro dia da semana" do Locale.
-    val daysSinceMonday = (calendar.get(Calendar.DAY_OF_WEEK) + 5) % 7
-    calendar.add(Calendar.DAY_OF_MONTH, -daysSinceMonday)
-    calendar.set(Calendar.HOUR_OF_DAY, 0)
-    calendar.set(Calendar.MINUTE, 0)
-    calendar.set(Calendar.SECOND, 0)
-    calendar.set(Calendar.MILLISECOND, 0)
-    return calendar.time
-}
-
-private fun shiftWeek(date: Date, days: Int): Date {
-    val calendar = Calendar.getInstance().apply { time = date }
-    calendar.add(Calendar.DAY_OF_MONTH, days)
-    return calendar.time
 }

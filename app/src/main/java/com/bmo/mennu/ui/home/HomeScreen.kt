@@ -21,11 +21,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material.icons.filled.Eco
-import androidx.compose.material.icons.filled.Grain
 import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -36,7 +33,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -77,11 +73,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
-            )
-            Text(
-                text = "Aqui está o resumo do seu dia",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -293,18 +284,8 @@ private fun PratoDoDiaCard(prato: PratoDoDia) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                prato.tags.forEach { tag ->
-                    val (icon, tint) = tag.iconAndTint()
-                    DietTagChip(label = tag.label, icon = icon, tint = tint)
-                }
+                prato.tags.forEach { tag -> DietTagChip(tag) }
             }
         }
     }
-}
-
-@Composable
-private fun DietTag.iconAndTint(): Pair<ImageVector, Color> = when (this) {
-    DietTag.VEGETARIANO -> Icons.Filled.Eco to MaterialTheme.colorScheme.tertiary
-    DietTag.VEGANO -> Icons.Filled.Spa to MaterialTheme.colorScheme.tertiary
-    DietTag.SEM_GLUTEN -> Icons.Filled.Grain to MaterialTheme.colorScheme.secondaryContainer
 }

@@ -56,7 +56,7 @@ fun AppNavigation() {
         ) {
             composable(Screen.Login.route) { LoginScreen(navController) }
             composable(Screen.Home.route) { HomeScreen(navController) }
-            composable(Screen.Cardapio.route) { CardapioScreen() }
+            composable(Screen.Cardapio.route) { CardapioScreen(navController = navController) }
             composable(Screen.Cartao.route) { CardScreen(navController = navController) }
             composable(Screen.QrCode.route) { QrCodeScreen() }
         }

@@ -1,5 +1,6 @@
 package com.bmo.mennu.data.remote
 
+import com.bmo.mennu.data.model.CardapioResponse
 import com.bmo.mennu.data.model.LoginRequest
 import com.bmo.mennu.data.model.LoginResponse
 import com.bmo.mennu.data.model.PaginatedResponse
@@ -25,4 +26,13 @@ interface ApiService {
         @Query("usuario_id") usuarioId: Int,
         @Query("page_size") pageSize: Int = 100
     ): Response<PaginatedResponse<RefeicaoServida>>
+
+    // Self-service: sem unidade_id, retorna só a(s) unidade(s) do usuário autenticado
+    // (ver core/api/routers/cardapio.py no mennu-api).
+    @GET("api/cardapio/")
+    suspend fun getCardapios(
+        @Query("data_refeicao_after") dataRefeicaoApos: String,
+        @Query("data_refeicao_before") dataRefeicaoAntes: String,
+        @Query("page_size") pageSize: Int = 100
+    ): Response<PaginatedResponse<CardapioResponse>>
 }

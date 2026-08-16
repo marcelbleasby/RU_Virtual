@@ -1,8 +1,16 @@
 <resources>
     <string name="app_name">Mennu</string>
-    <string name="error_senha_empty">senha não pode ser vazia\n</string>
-    <string name="label_senha">Digite sua senha</string>
-    <string name="button_entrar">Entrar</string>
+    <string name="cd_logo_mennu">Logo Mennu</string>
+    <string name="subtitle_login">Acesse sua conta para continuar</string>
+    <string name="label_email">E-mail</string>
+    <string name="hint_email">seu@email.com</string>
     <string name="error_email_empty">E-mail não pode ser vazio</string>
-    <string name="label_email">Digite seu e-mail</string>
+    <string name="error_email_invalid">Informe um e-mail válido</string>
+    <string name="label_senha">Senha</string>
+    <string name="error_senha_empty">senha não pode ser vazia\n</string>
+    <string name="cd_show_password">Mostrar senha</string>
+    <string name="cd_hide_password">Ocultar senha</string>
+    <string name="checkbox_lembrar_me">Lembrar-me</string>
+    <string name="button_entrar">Entrar</string>
+    <string name="footer_copyright">Mennu © 2025 — Sistema de Gestão de Refeições</string>
 </resources>

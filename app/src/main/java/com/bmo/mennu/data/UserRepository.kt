@@ -20,6 +20,19 @@ class UserRepository(
         private const val USER_DATA_PATH = "/user_data"
         private const val VCARD_ID_KEY = "vcard_id"
         private const val REFEICOES_MES_KEY = "refeicoes_mes"
+        private const val REMEMBERED_EMAIL_KEY = "remembered_email"
+    }
+
+    fun saveRememberedEmail(email: String) {
+        sharedPreferences.edit { putString(REMEMBERED_EMAIL_KEY, email) }
+    }
+
+    fun getRememberedEmail(): String? {
+        return sharedPreferences.getString(REMEMBERED_EMAIL_KEY, null)
+    }
+
+    fun clearRememberedEmail() {
+        sharedPreferences.edit { remove(REMEMBERED_EMAIL_KEY) }
     }
 
     fun saveUser(user: User) {

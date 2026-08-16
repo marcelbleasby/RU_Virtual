@@ -19,5 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "RU Virtual"
+rootProject.name = "Mennu"
 include(":app")
+include(":mennu_wear_os")

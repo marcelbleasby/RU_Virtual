@@ -8,17 +8,20 @@ plugins {
 }
 
 android {
-    namespace = "com.example.ruvirtual"
+    namespace = "com.bmo.mennu"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.ruvirtual"
+        applicationId = "com.bmo.mennu"
         minSdk = 23
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // IMPORTANTE: Substitua pelo IP do mennu-api na sua rede local (uvicorn roda na porta 8010).
+        buildConfigField("String", "API_BASE_URL", "\"http://10.5.40.175:8010/\"")
     }
 
     buildTypes {
@@ -41,6 +44,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
@@ -50,6 +54,7 @@ android {
 dependencies {
     // --- Core e XML ---
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.google.material) // Adicionada para os temas XML do Material 3
 
     // --- Compose ---
@@ -59,8 +64,9 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.material.icons.extended)
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.6.7")
 
 
 
@@ -72,7 +78,6 @@ dependencies {
 
     // --- Hilt (Injeção de Dependência) ---
     implementation(libs.hilt.android)
-    implementation(libs.androidx.compose.material3)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
@@ -82,6 +87,7 @@ dependencies {
     implementation(libs.logging.interceptor)
 
     // --- Testes (Padrão) ---
+    implementation(libs.play.services.wearable)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))

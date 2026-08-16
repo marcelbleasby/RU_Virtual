@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="Theme.RUVirtual" parent="Theme.Material3.Dark.NoActionBar" />
+    <style name="Theme.Mennu.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#FF3D00</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.Mennu</item>
+    </style>
+    <style name="Theme.Mennu" parent="Theme.Material3.Dark.NoActionBar" />
 </resources>

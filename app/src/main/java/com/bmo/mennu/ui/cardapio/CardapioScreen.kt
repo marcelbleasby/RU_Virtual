@@ -26,6 +26,7 @@ import androidx.navigation.NavHostController
 import android.widget.Toast
 import com.bmo.mennu.ui.components.AppHeader
 import com.bmo.mennu.ui.components.PillVariant
+import com.bmo.mennu.ui.components.PullToRefreshContent
 import com.bmo.mennu.ui.components.SelectionPill
 import com.bmo.mennu.ui.navigation.Screen
 
@@ -33,6 +34,7 @@ import com.bmo.mennu.ui.navigation.Screen
 fun CardapioScreen(navController: NavHostController, viewModel: CardapioViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     LaunchedEffect(errorMessage) {
@@ -42,99 +44,105 @@ fun CardapioScreen(navController: NavHostController, viewModel: CardapioViewMode
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState())
+    PullToRefreshContent(
+        isRefreshing = isRefreshing,
+        onRefresh = viewModel::refresh,
+        modifier = Modifier.fillMaxSize()
     ) {
-        AppHeader(
-            userName = uiState.nomeExibicao,
-            onAvatarClick = {
-                viewModel.onLogoutClicked()
-                navController.navigate(Screen.Login.route) {
-                    popUpTo(navController.graph.id) { inclusive = true }
-                }
-            }
-        )
-
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "Cardápio Semanal",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-
-            WeekNavigator(
-                weekDays = uiState.weekDays,
-                selectedDayIndex = uiState.selectedDayIndex,
-                onDaySelected = viewModel::onDaySelected,
-                onPreviousWeek = viewModel::onPreviousWeek,
-                onNextWeek = viewModel::onNextWeek
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                item {
-                    SelectionPill(
-                        label = "Todos",
-                        selected = uiState.selectedMealType == null,
-                        variant = PillVariant.MEAL_TYPE,
-                        onClick = { viewModel.onMealTypeSelected(null) }
-                    )
-                }
-                items(uiState.availableMealTypes) { mealType ->
-                    SelectionPill(
-                        label = mealType.nome,
-                        selected = uiState.selectedMealType?.id == mealType.id,
-                        variant = PillVariant.MEAL_TYPE,
-                        onClick = { viewModel.onMealTypeSelected(mealType) }
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-
-            uiState.selectedDay?.let { day ->
-                HighlightBanner(day = day, selectedMealType = uiState.selectedMealType)
-                Spacer(modifier = Modifier.height(20.dp))
-            }
-
-            if (uiState.visibleMealTypes.isEmpty()) {
-                Text(
-                    text = "Nenhum prato cadastrado para esta refeição.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            } else {
-                uiState.visibleMealTypes.forEach { mealType ->
-                    Text(
-                        text = mealType.nome,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    val dishesByCategory = uiState.selectedDay?.meals?.get(mealType)
-                        .orEmpty()
-                        .groupBy { it.category }
-                        .toSortedMap(compareBy { it.ordinal })
-
-                    dishesByCategory.forEach { (category, dishes) ->
-                        Text(
-                            text = category.label,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        dishes.forEach { dish ->
-                            DishCard(dish)
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .verticalScroll(rememberScrollState())
+        ) {
+            AppHeader(
+                userName = uiState.nomeExibicao,
+                onAvatarClick = {
+                    viewModel.onLogoutClicked()
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(navController.graph.id) { inclusive = true }
                     }
-                    Spacer(modifier = Modifier.height(12.dp))
+                }
+            )
+
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Cardápio Semanal",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+
+                WeekNavigator(
+                    weekDays = uiState.weekDays,
+                    selectedDayIndex = uiState.selectedDayIndex,
+                    onDaySelected = viewModel::onDaySelected,
+                    onPreviousWeek = viewModel::onPreviousWeek,
+                    onNextWeek = viewModel::onNextWeek
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    item {
+                        SelectionPill(
+                            label = "Todos",
+                            selected = uiState.selectedMealType == null,
+                            variant = PillVariant.MEAL_TYPE,
+                            onClick = { viewModel.onMealTypeSelected(null) }
+                        )
+                    }
+                    items(uiState.availableMealTypes) { mealType ->
+                        SelectionPill(
+                            label = mealType.nome,
+                            selected = uiState.selectedMealType?.id == mealType.id,
+                            variant = PillVariant.MEAL_TYPE,
+                            onClick = { viewModel.onMealTypeSelected(mealType) }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                uiState.selectedDay?.let { day ->
+                    HighlightBanner(day = day, selectedMealType = uiState.selectedMealType)
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+
+                if (uiState.visibleMealTypes.isEmpty()) {
+                    Text(
+                        text = "Nenhum prato cadastrado para esta refeição.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    uiState.visibleMealTypes.forEach { mealType ->
+                        Text(
+                            text = mealType.nome,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        val dishesByCategory = uiState.selectedDay?.meals?.get(mealType)
+                            .orEmpty()
+                            .groupBy { it.category }
+                            .toSortedMap(compareBy { it.ordinal })
+
+                        dishesByCategory.forEach { (category, dishes) ->
+                            Text(
+                                text = category.label,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            dishes.forEach { dish ->
+                                DishCard(dish)
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                 }
             }
         }

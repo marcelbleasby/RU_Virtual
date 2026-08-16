@@ -2,6 +2,7 @@ package com.bmo.mennu.data
 
 import com.bmo.mennu.data.model.CardapioResponse
 import com.bmo.mennu.data.model.PratoResponse
+import com.bmo.mennu.data.model.TipoRefeicaoResponse
 import com.bmo.mennu.data.remote.ApiService
 import com.bmo.mennu.ui.cardapio.DayMenu
 import com.bmo.mennu.ui.cardapio.DietTag
@@ -33,6 +34,17 @@ class CardapioRepository @Inject constructor(
             throw java.io.IOException("Não foi possível carregar o cardápio (${response.code()}).")
         }
         return buildWeekDays(weekStart, response.body()?.results.orEmpty())
+    }
+
+    // GET /tipo-refeicao/minhas também é self-service por unidade, mesmo padrão
+    // de getWeekMenu — usado pra saber o horário real de cada refeição (não vem
+    // no /cardapio/) e resolver qual é "a refeição de agora".
+    suspend fun getMinhasTiposRefeicao(): List<TipoRefeicaoResponse> {
+        val response = apiService.getTiposRefeicaoMinhas()
+        if (!response.isSuccessful) {
+            throw java.io.IOException("Não foi possível carregar os tipos de refeição (${response.code()}).")
+        }
+        return response.body()?.results.orEmpty()
     }
 }
 

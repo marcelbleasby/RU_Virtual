@@ -38,8 +38,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.bmo.mennu.ui.cardapio.Dish
 import com.bmo.mennu.ui.components.AppHeader
 import com.bmo.mennu.ui.components.DietTagChip
+import com.bmo.mennu.ui.components.PullToRefreshContent
 import com.bmo.mennu.ui.navigation.Screen
 import com.bmo.mennu.ui.navigation.navigateToBottomNavDestination
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -50,46 +52,54 @@ import java.util.Locale
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState())
+    PullToRefreshContent(
+        isRefreshing = isRefreshing,
+        onRefresh = viewModel::refresh,
+        modifier = Modifier.fillMaxSize()
     ) {
-        AppHeader(
-            userName = uiState.nomeExibicao,
-            onAvatarClick = {
-                viewModel.onLogoutClicked()
-                navController.navigate(Screen.Login.route) {
-                    popUpTo(navController.graph.id) { inclusive = true }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .verticalScroll(rememberScrollState())
+        ) {
+            AppHeader(
+                userName = uiState.nomeExibicao,
+                onAvatarClick = {
+                    viewModel.onLogoutClicked()
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
                 }
+            )
+
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Bem-vindo(a) de volta!",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+
+                CreditsBalanceCard(credits = uiState.creditos)
+                Spacer(modifier = Modifier.height(24.dp))
+
+                QuickActionsRow(
+                    onQrCodeClick = { navController.navigateToBottomNavDestination(Screen.QrCode.route) },
+                    onCardapioClick = { navController.navigateToBottomNavDestination(Screen.Cardapio.route) },
+                    onCartaoClick = { navController.navigateToBottomNavDestination(Screen.Cartao.route) }
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+
+                LunchTodaySection(
+                    refeicaoNome = uiState.refeicaoAtualNome,
+                    pratos = uiState.pratosHoje,
+                    onVerTudoClick = { navController.navigateToBottomNavDestination(Screen.Cardapio.route) }
+                )
             }
-        )
-
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "Bem-vindo(a) de volta!",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-
-            CreditsBalanceCard(credits = uiState.creditos)
-            Spacer(modifier = Modifier.height(24.dp))
-
-            QuickActionsRow(
-                onQrCodeClick = { navController.navigateToBottomNavDestination(Screen.QrCode.route) },
-                onCardapioClick = { navController.navigateToBottomNavDestination(Screen.Cardapio.route) },
-                onCartaoClick = { navController.navigateToBottomNavDestination(Screen.Cartao.route) }
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-
-            LunchTodaySection(
-                pratos = uiState.pratosHoje,
-                onVerTudoClick = { navController.navigateToBottomNavDestination(Screen.Cardapio.route) }
-            )
         }
     }
 }
@@ -218,7 +228,7 @@ private fun QuickActionCard(icon: ImageVector, label: String, modifier: Modifier
 }
 
 @Composable
-private fun LunchTodaySection(pratos: List<PratoDoDia>, onVerTudoClick: () -> Unit) {
+private fun LunchTodaySection(refeicaoNome: String?, pratos: List<Dish>, onVerTudoClick: () -> Unit) {
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -226,7 +236,7 @@ private fun LunchTodaySection(pratos: List<PratoDoDia>, onVerTudoClick: () -> Un
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Almoço de hoje",
+                text = refeicaoNome?.let { "$it de hoje" } ?: "Refeição de hoje",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
@@ -254,9 +264,21 @@ private fun LunchTodaySection(pratos: List<PratoDoDia>, onVerTudoClick: () -> Un
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(12.dp))
-        pratos.forEach { prato ->
-            PratoDoDiaCard(prato)
-            Spacer(modifier = Modifier.height(8.dp))
+        when {
+            refeicaoNome == null -> Text(
+                text = "Nenhuma refeição em andamento agora.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            pratos.isEmpty() -> Text(
+                text = "Nenhum prato cadastrado para esta refeição.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            else -> pratos.forEach { prato ->
+                PratoDoDiaCard(prato)
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
     }
 }
@@ -269,7 +291,7 @@ private fun todayLabel(): String {
 }
 
 @Composable
-private fun PratoDoDiaCard(prato: PratoDoDia) {
+private fun PratoDoDiaCard(prato: Dish) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
@@ -277,7 +299,7 @@ private fun PratoDoDiaCard(prato: PratoDoDia) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = prato.nome,
+                text = prato.name,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface

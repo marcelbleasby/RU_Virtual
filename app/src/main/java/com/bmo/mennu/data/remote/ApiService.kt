@@ -5,6 +5,7 @@ import com.bmo.mennu.data.model.LoginRequest
 import com.bmo.mennu.data.model.LoginResponse
 import com.bmo.mennu.data.model.PaginatedResponse
 import com.bmo.mennu.data.model.RefeicaoServida
+import com.bmo.mennu.data.model.TipoRefeicaoResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -35,4 +36,11 @@ interface ApiService {
         @Query("data_refeicao_before") dataRefeicaoAntes: String,
         @Query("page_size") pageSize: Int = 100
     ): Response<PaginatedResponse<CardapioResponse>>
+
+    // Self-service: sem exigir Cargo, retorna só os tipos de refeição da(s)
+    // unidade(s) do usuário autenticado (ver core/api/routers/tipo_refeicao.py).
+    @GET("api/tipo-refeicao/minhas")
+    suspend fun getTiposRefeicaoMinhas(
+        @Query("page_size") pageSize: Int = 100
+    ): Response<PaginatedResponse<TipoRefeicaoResponse>>
 }

@@ -1,8 +1,10 @@
 package com.bmo.mennu.ui.login
 
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bmo.mennu.data.AuthRepository
+import com.bmo.mennu.data.UserRepository
 import com.bmo.mennu.data.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _email = MutableStateFlow("")
@@ -20,6 +23,9 @@ class LoginViewModel @Inject constructor(
 
     private val _senha = MutableStateFlow("")
     val senha = _senha.asStateFlow()
+
+    private val _rememberMe = MutableStateFlow(false)
+    val rememberMe = _rememberMe.asStateFlow()
 
     private val _loginResult = MutableStateFlow<User?>(null)
     val loginResult = _loginResult.asStateFlow()
@@ -33,6 +39,13 @@ class LoginViewModel @Inject constructor(
     private val _isSenhaError = MutableStateFlow(false)
     val isSenhaError = _isSenhaError.asStateFlow()
 
+    init {
+        userRepository.getRememberedEmail()?.let {
+            _email.value = it
+            _rememberMe.value = true
+        }
+    }
+
     fun onEmailChange(newValue: String) {
         _email.value = newValue
         _isEmailError.value = false
@@ -41,6 +54,10 @@ class LoginViewModel @Inject constructor(
     fun onSenhaChange(newValue: String) {
         _senha.value = newValue
         _isSenhaError.value = false
+    }
+
+    fun onRememberMeChange(checked: Boolean) {
+        _rememberMe.value = checked
     }
 
     fun onLoginClicked() {
@@ -52,6 +69,11 @@ class LoginViewModel @Inject constructor(
             _errorMessage.value = "O e-mail não pode estar vazio."
             return
         }
+        if (!Patterns.EMAIL_ADDRESS.matcher(currentEmail).matches()) {
+            _isEmailError.value = true
+            _errorMessage.value = "Informe um e-mail válido."
+            return
+        }
         if (currentSenha.isBlank()) {
             _isSenhaError.value = true
             _errorMessage.value = "A senha não pode estar vazia."
@@ -61,6 +83,11 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             authRepository.login(currentEmail, currentSenha)
                 .onSuccess {
+                    if (rememberMe.value) {
+                        userRepository.saveRememberedEmail(currentEmail)
+                    } else {
+                        userRepository.clearRememberedEmail()
+                    }
                     _loginResult.value = it
                     _errorMessage.value = null
                 }

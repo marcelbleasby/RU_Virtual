@@ -219,3 +219,4 @@ val surfaceContainerHighestDarkHighContrast = Color(0xFF484646)
 
 
 val VirtualCardBackground = Color(0xFF3A3A3A)
+val DietGreen = Color(0xFF4CAF50)

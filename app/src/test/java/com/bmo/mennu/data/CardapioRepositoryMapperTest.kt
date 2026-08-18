@@ -4,6 +4,7 @@ import com.bmo.mennu.data.model.CardapioResponse
 import com.bmo.mennu.data.model.PratoResponse
 import com.bmo.mennu.ui.cardapio.DietTag
 import com.bmo.mennu.ui.cardapio.FoodCategory
+import com.google.gson.Gson
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -123,6 +124,44 @@ class CardapioRepositoryMapperTest {
         val dish = buildWeekDays(weekStart, listOf(cardapio))[0].meals.values.single().single()
 
         assertEquals(listOf(DietTag.VEGETARIANO), dish.tags)
+    }
+
+    @Test
+    fun `does not crash when the backend omits pratos or restricoes keys entirely`() {
+        // Gson simples não respeita o default do Kotlin (= emptyList()) quando a chave
+        // some do JSON — o campo vira null em runtime mesmo com tipo não-nulo declarado.
+        // Reproduz exatamente o payload que causou "Attempt to invoke interface method
+        // 'java.util.Iterator java.lang.Iterable.iterator()' on a null object reference".
+        val json = """
+            {
+                "id": 1,
+                "data_refeicao": "2026-02-09",
+                "tipo_refeicao": 2,
+                "tipo_refeicao_nome": "Almoço",
+                "tipo_refeicao_ordem": 2
+            }
+        """.trimIndent()
+        val cardapio = Gson().fromJson(json, CardapioResponse::class.java)
+
+        val days = buildWeekDays(weekStart, listOf(cardapio))
+
+        assertEquals(1, days[0].meals.size)
+        assertTrue(days[0].meals.values.single().isEmpty())
+    }
+
+    @Test
+    fun `does not crash when a prato omits restricoes entirely`() {
+        val json = """{"id": 10, "tipo_prato": "principal", "nome": "Frango"}"""
+        val prato = Gson().fromJson(json, PratoResponse::class.java)
+        val cardapio = CardapioResponse(
+            id = 1, dataRefeicao = "2026-02-09", tipoRefeicaoId = 2,
+            tipoRefeicaoNome = "Almoço", tipoRefeicaoOrdem = 2,
+            pratos = listOf(prato),
+        )
+
+        val dish = buildWeekDays(weekStart, listOf(cardapio))[0].meals.values.single().single()
+
+        assertTrue(dish.tags.isEmpty())
     }
 
     @Test

@@ -25,6 +25,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import android.widget.Toast
 import com.bmo.mennu.ui.components.AppHeader
+import com.bmo.mennu.ui.components.LastSyncedText
+import com.bmo.mennu.ui.components.OfflineBanner
 import com.bmo.mennu.ui.components.PillVariant
 import com.bmo.mennu.ui.components.PullToRefreshContent
 import com.bmo.mennu.ui.components.SelectionPill
@@ -35,6 +37,8 @@ fun CardapioScreen(navController: NavHostController, viewModel: CardapioViewMode
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val isOnline by viewModel.isOnline.collectAsStateWithLifecycle()
+    val lastSyncedAt by viewModel.lastSyncedAt.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     LaunchedEffect(errorMessage) {
@@ -66,12 +70,18 @@ fun CardapioScreen(navController: NavHostController, viewModel: CardapioViewMode
             )
 
             Column(modifier = Modifier.padding(16.dp)) {
+                if (!isOnline) {
+                    OfflineBanner()
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
                 Text(
                     text = "Cardápio Semanal",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
+                LastSyncedText(lastSyncedAt = lastSyncedAt)
                 Spacer(modifier = Modifier.height(20.dp))
 
                 WeekNavigator(

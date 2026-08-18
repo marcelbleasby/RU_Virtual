@@ -5,12 +5,16 @@ import androidx.lifecycle.viewModelScope
 import com.bmo.mennu.data.AuthRepository
 import com.bmo.mennu.data.CardapioRepository
 import com.bmo.mennu.data.UserRepository
+import com.bmo.mennu.data.network.ConnectivityObserver
 import com.bmo.mennu.util.mondayOfCurrentWeek
 import com.bmo.mennu.util.shiftWeek
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Date
 import javax.inject.Inject
@@ -38,20 +42,16 @@ data class CardapioUiState(
         .filter { selectedDay?.meals?.get(it)?.isNotEmpty() == true }
 }
 
-// resetSelection=true (navegação de semana): reseta o dia selecionado pra segunda.
-// resetSelection=false (pull-to-refresh): preserva dia/filtro que o usuário já escolheu.
-internal fun CardapioUiState.withFetchedWeek(days: List<DayMenu>, resetSelection: Boolean): CardapioUiState = copy(
-    isLoading = false,
-    weekDays = days,
-    selectedDayIndex = if (resetSelection) 0 else selectedDayIndex
-)
-
 @HiltViewModel
 class CardapioViewModel @Inject constructor(
     private val cardapioRepository: CardapioRepository,
     private val userRepository: UserRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
+
+    val isOnline: StateFlow<Boolean> = connectivityObserver.isOnline
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     private val _uiState = MutableStateFlow(CardapioUiState())
     val uiState = _uiState.asStateFlow()
@@ -62,8 +62,12 @@ class CardapioViewModel @Inject constructor(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
 
+    private val _lastSyncedAt = MutableStateFlow<Long?>(null)
+    val lastSyncedAt = _lastSyncedAt.asStateFlow()
+
     private var weekStart: Date = mondayOfCurrentWeek()
-    private var loadJob: Job? = null
+    private var observeJob: Job? = null
+    private var refreshJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -71,7 +75,8 @@ class CardapioViewModel @Inject constructor(
             val primeiroNome = user?.nome?.trim()?.substringBefore(" ")?.takeIf { it.isNotBlank() } ?: "Usuário"
             _uiState.value = _uiState.value.copy(nomeExibicao = primeiroNome)
         }
-        loadWeek(resetSelection = true)
+        observeCurrentWeek(resetDaySelection = true)
+        triggerRefresh()
     }
 
     fun onDaySelected(index: Int) {
@@ -84,18 +89,20 @@ class CardapioViewModel @Inject constructor(
 
     fun onPreviousWeek() {
         weekStart = shiftWeek(weekStart, -7)
-        loadWeek(resetSelection = true)
+        observeCurrentWeek(resetDaySelection = true)
+        triggerRefresh()
     }
 
     fun onNextWeek() {
         weekStart = shiftWeek(weekStart, 7)
-        loadWeek(resetSelection = true)
+        observeCurrentWeek(resetDaySelection = true)
+        triggerRefresh()
     }
 
     fun refresh() {
         if (_isRefreshing.value) return
         _isRefreshing.value = true
-        loadWeek(resetSelection = false)
+        triggerRefresh()
     }
 
     fun onLogoutClicked() {
@@ -106,19 +113,32 @@ class CardapioViewModel @Inject constructor(
         _errorMessage.value = null
     }
 
-    private fun loadWeek(resetSelection: Boolean) {
-        loadJob?.cancel()
-        loadJob = viewModelScope.launch {
-            if (resetSelection) _uiState.value = _uiState.value.copy(isLoading = true)
-            try {
-                val days = cardapioRepository.getWeekMenu(weekStart)
-                _uiState.value = _uiState.value.withFetchedWeek(days, resetSelection)
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(isLoading = false)
-                _errorMessage.value = e.localizedMessage ?: "Erro de conexão. Tente novamente."
-            } finally {
-                _isRefreshing.value = false
+    // Offline-first: assina o cache do Room pra essa semana (emite na hora, mesmo
+    // sem rede) — reset de dia/filtro acontece só aqui, uma vez por troca de semana,
+    // não a cada emissão da Flow.
+    private fun observeCurrentWeek(resetDaySelection: Boolean) {
+        observeJob?.cancel()
+        if (resetDaySelection) {
+            _uiState.value = _uiState.value.copy(isLoading = true, selectedDayIndex = 0, selectedMealType = null)
+        }
+        observeJob = viewModelScope.launch {
+            launch {
+                cardapioRepository.observeWeekMenu(weekStart).collect { days ->
+                    _uiState.value = _uiState.value.copy(isLoading = false, weekDays = days)
+                }
             }
+            launch {
+                cardapioRepository.observeWeekMenuLastSyncedAt(weekStart).collect { _lastSyncedAt.value = it }
+            }
+        }
+    }
+
+    private fun triggerRefresh() {
+        refreshJob?.cancel()
+        refreshJob = viewModelScope.launch {
+            cardapioRepository.refreshWeekMenu(weekStart)
+                .onFailure { e -> _errorMessage.value = e.localizedMessage ?: "Erro de conexão. Tente novamente." }
+            _isRefreshing.value = false
         }
     }
 }

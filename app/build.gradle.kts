@@ -50,6 +50,10 @@ android {
     }
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     // --- Core e XML ---
     implementation(libs.androidx.core.ktx)
@@ -85,6 +89,19 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.logging.interceptor)
+
+    // --- Segurança (storage criptografado) ---
+    implementation(libs.androidx.security.crypto)
+
+    // --- Room (cache offline) ---
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    // --- WorkManager (sync em background) ---
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
 
     // --- Testes (Padrão) ---
     implementation(libs.play.services.wearable)

@@ -6,9 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -42,6 +45,23 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
+    val sessionViewModel: SessionViewModel = hiltViewModel()
+    val sessionInvalidated by sessionViewModel.sessionInvalidated.collectAsStateWithLifecycle()
+
+    // Token/user salvos de um login anterior: pula a tela de login e vai direto
+    // pra Home, mesmo offline. SessionViewModel valida a sessão contra o servidor
+    // em paralelo (ver sessionInvalidated abaixo) — só desloga se o servidor
+    // confirmar que a sessão morreu, nunca por falta de conexão.
+    val startDestination = if (sessionViewModel.hasSavedSession) Screen.Home.route else Screen.Login.route
+
+    LaunchedEffect(sessionInvalidated) {
+        if (sessionInvalidated) {
+            navController.navigate(Screen.Login.route) {
+                popUpTo(navController.graph.id) { inclusive = true }
+            }
+        }
+    }
+
     Scaffold(
         bottomBar = {
             if (bottomNavItems.any { it.screen.route == currentRoute }) {
@@ -51,7 +71,7 @@ fun AppNavigation() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Login.route,
+            startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Login.route) { LoginScreen(navController) }

@@ -14,9 +14,14 @@ import com.bmo.mennu.data.PlanoRepository
 import com.bmo.mennu.data.UserRepository
 import com.bmo.mennu.data.model.RefeicaoServida
 import com.bmo.mennu.data.model.User
+import com.bmo.mennu.data.network.ConnectivityObserver
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -40,8 +45,12 @@ class CardViewModel @Inject constructor(
     private val mealRepository: MealRepository,
     private val planoRepository: PlanoRepository,
     private val nfcTapEventBus: NfcTapEventBus,
-    private val nfcStatusRepository: NfcStatusRepository
+    private val nfcStatusRepository: NfcStatusRepository,
+    connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
+
+    val isOnline: StateFlow<Boolean> = connectivityObserver.isOnline
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     private val _uiState = MutableStateFlow<CardUiState?>(null)
     val uiState = _uiState.asStateFlow()
@@ -54,6 +63,9 @@ class CardViewModel @Inject constructor(
 
     private val _tapDetected = MutableStateFlow<Long?>(null)
     val tapDetected = _tapDetected.asStateFlow()
+
+    private val _lastSyncedAt = MutableStateFlow<Long?>(null)
+    val lastSyncedAt = _lastSyncedAt.asStateFlow()
 
     val nfcHardwareState = nfcStatusRepository.hardwareState
     val emulationAtiva = nfcStatusRepository.emulationAtiva
@@ -79,7 +91,20 @@ class CardViewModel @Inject constructor(
                 }
 
                 val planoInfo = planoRepository.getPlanoInfo()
-                when (val meals = mealRepository.getRefeicoesServidas(user.id)) {
+
+                // Offline-first: hidrata com o que já está em cache (Room) antes de
+                // tentar rede, pra mostrar histórico salvo mesmo sem conexão.
+                val cached = mealRepository.observeRefeicoesServidas(user.id).first()
+                if (cached.isNotEmpty()) {
+                    _uiState.value = CardUiState(
+                        user = user,
+                        historico = cached,
+                        refeicoesEsteMes = cached.count { isNoMesAtual(it.dataHora) },
+                        planoInfo = planoInfo
+                    )
+                }
+
+                when (val meals = mealRepository.refreshRefeicoesServidas(user.id)) {
                     is MealHistoryResult.Success -> {
                         val refeicoesEsteMes = meals.refeicoes.count { isNoMesAtual(it.dataHora) }
                         userRepository.updateRefeicoesMes(refeicoesEsteMes)
@@ -91,13 +116,18 @@ class CardViewModel @Inject constructor(
                         )
                     }
                     is MealHistoryResult.Unavailable -> {
-                        _uiState.value = CardUiState(user = user, consumoIndisponivel = true, planoInfo = planoInfo)
+                        if (cached.isEmpty()) {
+                            _uiState.value = CardUiState(user = user, consumoIndisponivel = true, planoInfo = planoInfo)
+                        }
                     }
                     is MealHistoryResult.Failure -> {
-                        _uiState.value = CardUiState(user = user, planoInfo = planoInfo)
+                        if (cached.isEmpty()) {
+                            _uiState.value = CardUiState(user = user, planoInfo = planoInfo)
+                        }
                         _errorMessage.value = meals.message
                     }
                 }
+                _lastSyncedAt.value = mealRepository.observeLastSyncedAt(user.id).first()
             } catch (e: Exception) {
                 Log.e("CardViewModel", "Erro ao carregar dados do cartão", e)
                 _errorMessage.value = e.localizedMessage ?: "Erro de conexão. Tente novamente."

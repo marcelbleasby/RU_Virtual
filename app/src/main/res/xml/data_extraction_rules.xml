@@ -5,16 +5,12 @@
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-
-        <include .../>
-        <exclude .../>
-        -->
+        <!-- mennu_secure_prefs holds the bearer auth token + vCardId (active
+             NFC credential) — must not silently restore onto a new device
+             without re-authenticating against the server. -->
+        <exclude domain="sharedpref" path="mennu_secure_prefs.xml"/>
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <exclude domain="sharedpref" path="mennu_secure_prefs.xml"/>
     </device-transfer>
-    -->
 </data-extraction-rules>

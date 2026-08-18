@@ -66,6 +66,9 @@ import com.bmo.mennu.data.NfcHardwareState
 import com.bmo.mennu.data.model.RefeicaoServida
 import com.bmo.mennu.nfc.MennuHostApduService
 import com.bmo.mennu.ui.components.AppHeader
+import com.bmo.mennu.ui.components.LastSyncedText
+import com.bmo.mennu.ui.components.OfflineBanner
+import com.bmo.mennu.ui.components.PullToRefreshContent
 import com.bmo.mennu.ui.navigation.Screen
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -187,6 +190,8 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
     val tapDetected by viewModel.tapDetected.collectAsStateWithLifecycle()
+    val isOnline by viewModel.isOnline.collectAsStateWithLifecycle()
+    val lastSyncedAt by viewModel.lastSyncedAt.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
 
@@ -322,35 +327,46 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState())
+    PullToRefreshContent(
+        isRefreshing = isRefreshing,
+        onRefresh = { viewModel.refreshCardData() },
+        modifier = Modifier.fillMaxSize()
     ) {
-        AppHeader(
-            userName = nome,
-            onAvatarClick = {
-                viewModel.onLogoutClicked()
-                navController.navigate(Screen.Login.route) {
-                    popUpTo(navController.graph.id) { inclusive = true }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .verticalScroll(rememberScrollState())
+        ) {
+            AppHeader(
+                userName = nome,
+                onAvatarClick = {
+                    viewModel.onLogoutClicked()
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
                 }
-            }
-        )
+            )
 
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "Meu Cartão",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Text(
-                text = "Saldo de créditos e histórico de refeições",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(20.dp))
+            Column(modifier = Modifier.padding(16.dp)) {
+                if (!isOnline) {
+                    OfflineBanner()
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                Text(
+                    text = "Meu Cartão",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = "Saldo de créditos e histórico de refeições",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                LastSyncedText(lastSyncedAt = lastSyncedAt)
+                Spacer(modifier = Modifier.height(20.dp))
 
             val planoInfo = state.planoInfo
             CartaoMennuCard(
@@ -426,6 +442,7 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
+        }
         }
     }
 }

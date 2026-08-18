@@ -6,8 +6,9 @@
    See https://developer.android.com/about/versions/12/backup-restore
 -->
 <full-backup-content>
-    <!--
-   <include domain="sharedpref" path="."/>
-   <exclude domain="sharedpref" path="device.xml"/>
--->
+    <!-- Pre-API-31 fallback; mirrors data_extraction_rules.xml.
+         mennu_secure_prefs holds the bearer auth token + vCardId (active NFC
+         credential) — must not silently restore onto a new device without
+         re-authenticating against the server. -->
+    <exclude domain="sharedpref" path="mennu_secure_prefs.xml"/>
 </full-backup-content>

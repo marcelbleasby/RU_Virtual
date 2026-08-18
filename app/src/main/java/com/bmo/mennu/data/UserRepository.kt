@@ -19,6 +19,7 @@ class UserRepository(
         private const val USER_KEY = "user"
         private const val USER_DATA_PATH = "/user_data"
         private const val VCARD_ID_KEY = "vcard_id"
+        private const val TENANT_SALT_KEY = "tenant_salt"
         private const val REFEICOES_MES_KEY = "refeicoes_mes"
         private const val REMEMBERED_EMAIL_KEY = "remembered_email"
     }
@@ -39,7 +40,7 @@ class UserRepository(
         this.user = user
         val userJson = Gson().toJson(user)
         sharedPreferences.edit { putString(USER_KEY, userJson) }
-        syncToWear(user.vCardId, refeicoesMes = null)
+        syncToWear(user.vCardId, user.tenantSalt, refeicoesMes = null)
     }
 
     fun getUser(): User? {
@@ -59,7 +60,8 @@ class UserRepository(
     // Repropaga o consumo do período pro relógio sem precisar reemitir o User inteiro
     // (chamado depois que a tela de cartão busca o histórico de refeições).
     fun updateRefeicoesMes(refeicoesMes: Int) {
-        syncToWear(getUser()?.vCardId, refeicoesMes)
+        val currentUser = getUser()
+        syncToWear(currentUser?.vCardId, currentUser?.tenantSalt, refeicoesMes)
     }
 
     fun clearUser() {
@@ -67,9 +69,10 @@ class UserRepository(
         sharedPreferences.edit { remove(USER_KEY) }
     }
 
-    private fun syncToWear(vCardId: String?, refeicoesMes: Int?) {
+    private fun syncToWear(vCardId: String?, tenantSalt: String?, refeicoesMes: Int?) {
         val putDataMapReq = PutDataMapRequest.create(USER_DATA_PATH).apply {
             dataMap.putString(VCARD_ID_KEY, vCardId ?: "")
+            dataMap.putString(TENANT_SALT_KEY, tenantSalt ?: "")
             if (refeicoesMes != null) {
                 dataMap.putInt(REFEICOES_MES_KEY, refeicoesMes)
             }

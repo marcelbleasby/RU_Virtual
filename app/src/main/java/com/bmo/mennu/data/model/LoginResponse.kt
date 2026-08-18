@@ -27,5 +27,7 @@ data class LoginResponse(
     @SerializedName("feature_flags")
     val featureFlags: List<String> = emptyList(),
     @SerializedName("numero_cartao")
-    val numeroCartao: String?
+    val numeroCartao: String?,
+    @SerializedName("tenant_salt")
+    val tenantSalt: String?
 )

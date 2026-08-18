@@ -56,7 +56,7 @@ internal fun buildWeekDays(weekStart: Date, cardapios: List<CardapioResponse>): 
     return (0 until 7).map { offset ->
         val date = shiftDays(weekStart, offset)
         val meals = cardapiosPorData[isoDateFormat.format(date)].orEmpty()
-            .associate { cardapio -> cardapio.toMealType() to cardapio.pratos.map { it.toDish() } }
+            .associate { cardapio -> cardapio.toMealType() to cardapio.pratos.orEmpty().map { it.toDish() } }
         DayMenu(
             date = date,
             dayLabel = dayLabelFormat.format(date).replaceFirstChar { it.uppercase() },
@@ -75,5 +75,5 @@ private fun PratoResponse.toDish() = Dish(
     id = id.toString(),
     name = nome,
     category = FoodCategory.valueOf(tipoPrato.uppercase()),
-    tags = restricoes.mapNotNull { DietTag.fromSlug(it) }
+    tags = restricoes.orEmpty().mapNotNull { DietTag.fromSlug(it) }
 )

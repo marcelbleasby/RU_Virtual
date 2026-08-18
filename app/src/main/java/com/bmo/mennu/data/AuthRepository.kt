@@ -68,5 +68,6 @@ private fun LoginResponse.toUser() = User(
     matricula = matricula,
     cargo = cargo,
     empresaId = empresaId,
-    vCardId = numeroCartao
+    vCardId = numeroCartao,
+    tenantSalt = tenantSalt
 )

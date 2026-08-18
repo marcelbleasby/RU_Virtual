@@ -11,5 +11,8 @@ data class User(
     // usuário) — populado em /api/auth/login e /api/auth/ativo. Fica null se o
     // usuário não tiver credencial NFC ativa cadastrada; a emulação NFC
     // (MennuHostApduService) já trata esse caso sem quebrar.
-    val vCardId: String? = null
+    val vCardId: String? = null,
+    // Salt anti-clonagem da empresa (tenant), usado pelo challenge-response HCE
+    // (MennuHostApduService.handleInternalAuthenticate). Vem de LoginResponseSchema.tenant_salt.
+    val tenantSalt: String? = null
 )

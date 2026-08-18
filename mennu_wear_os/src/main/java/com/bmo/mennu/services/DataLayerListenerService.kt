@@ -37,6 +37,13 @@ class DataLayerListenerService : WearableListenerService() {
                         serviceScope.launch { saveVCardIdToDataStore(vCardId) }
                     }
 
+                    val tenantSalt = dataMapItem.dataMap.getString("tenant_salt")
+                    if (tenantSalt != null) {
+                        Log.d("DataLayerListener", "Received tenantSalt")
+                        MennuHostApduService.tenantSalt = tenantSalt
+                        serviceScope.launch { saveTenantSaltToDataStore(tenantSalt) }
+                    }
+
                     if (dataMapItem.dataMap.containsKey("refeicoes_mes")) {
                         val refeicoesMes = dataMapItem.dataMap.getInt("refeicoes_mes")
                         Log.d("DataLayerListener", "Received refeicoesMes: $refeicoesMes")
@@ -52,6 +59,14 @@ class DataLayerListenerService : WearableListenerService() {
             val key = stringPreferencesKey("vcard_id")
             preferences[key] = vCardId
             Log.d("DataLayerListener", "Saved VCardId to DataStore.")
+        }
+    }
+
+    private suspend fun saveTenantSaltToDataStore(tenantSalt: String) {
+        dataStore.edit { preferences ->
+            val key = stringPreferencesKey("tenant_salt")
+            preferences[key] = tenantSalt
+            Log.d("DataLayerListener", "Saved tenantSalt to DataStore.")
         }
     }
 

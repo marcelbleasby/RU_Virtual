@@ -39,6 +39,9 @@ class LoginViewModel @Inject constructor(
     private val _isSenhaError = MutableStateFlow(false)
     val isSenhaError = _isSenhaError.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
+
     init {
         userRepository.getRememberedEmail()?.let {
             _email.value = it
@@ -61,6 +64,8 @@ class LoginViewModel @Inject constructor(
     }
 
     fun onLoginClicked() {
+        if (_isLoading.value) return
+
         val currentEmail = email.value
         val currentSenha = senha.value
 
@@ -81,6 +86,7 @@ class LoginViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            _isLoading.value = true
             authRepository.login(currentEmail, currentSenha)
                 .onSuccess {
                     if (rememberMe.value) {
@@ -94,6 +100,7 @@ class LoginViewModel @Inject constructor(
                 .onFailure {
                     _errorMessage.value = it.localizedMessage ?: "Erro de conexão. Tente novamente."
                 }
+            _isLoading.value = false
         }
     }
 

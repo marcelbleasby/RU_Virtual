@@ -2,7 +2,10 @@ package com.bmo.mennu.di
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import com.bmo.mennu.BuildConfig
+import com.bmo.mennu.data.SecurePrefsMigrator
 import com.bmo.mennu.data.UserRepository
 import com.bmo.mennu.data.remote.ApiService
 import com.bmo.mennu.data.remote.AuthInterceptor
@@ -30,7 +33,21 @@ object AppModule {
     @Provides
     @Singleton
     fun provideSharedPreferences(@ApplicationContext context: Context): SharedPreferences {
-        return context.getSharedPreferences("mennu_prefs", Context.MODE_PRIVATE)
+        val masterKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+
+        val securePrefs = EncryptedSharedPreferences.create(
+            context,
+            "mennu_secure_prefs",
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+
+        SecurePrefsMigrator.migrateIfNeeded(context, securePrefs)
+
+        return securePrefs
     }
 
     @Provides

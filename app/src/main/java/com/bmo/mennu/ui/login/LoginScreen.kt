@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -19,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -54,6 +56,7 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
     val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
     val isEmailError by viewModel.isEmailError.collectAsStateWithLifecycle()
     val isSenhaError by viewModel.isSenhaError.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     LaunchedEffect(loginResult) {
@@ -171,12 +174,21 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
 
             Button(
                 onClick = viewModel::onLoginClicked,
+                enabled = !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text(stringResource(R.string.button_entrar), color = MaterialTheme.colorScheme.onPrimary)
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.height(20.dp).width(20.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(stringResource(R.string.button_entrar), color = MaterialTheme.colorScheme.onPrimary)
+                }
             }
             Spacer(modifier = Modifier.height(32.dp))
 

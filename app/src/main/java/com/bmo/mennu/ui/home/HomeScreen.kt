@@ -41,6 +41,7 @@ import androidx.navigation.NavHostController
 import com.bmo.mennu.ui.cardapio.Dish
 import com.bmo.mennu.ui.components.AppHeader
 import com.bmo.mennu.ui.components.DietTagChip
+import com.bmo.mennu.ui.components.OfflineBanner
 import com.bmo.mennu.ui.components.PullToRefreshContent
 import com.bmo.mennu.ui.navigation.Screen
 import com.bmo.mennu.ui.navigation.navigateToBottomNavDestination
@@ -53,6 +54,7 @@ import java.util.Locale
 fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val isOnline by viewModel.isOnline.collectAsStateWithLifecycle()
 
     PullToRefreshContent(
         isRefreshing = isRefreshing,
@@ -76,6 +78,11 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
             )
 
             Column(modifier = Modifier.padding(16.dp)) {
+                if (!isOnline) {
+                    OfflineBanner()
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
                 Text(
                     text = "Bem-vindo(a) de volta!",
                     style = MaterialTheme.typography.headlineMedium,

@@ -93,6 +93,15 @@ class CardViewModel @Inject constructor(
                     is MealHistoryResult.Unavailable -> {
                         _uiState.value = CardUiState(user = user, consumoIndisponivel = true, planoInfo = planoInfo)
                     }
+                    is MealHistoryResult.SessionExpired -> {
+                        // Sessão morta no meio do uso (ex.: conta desativada) — derruba a
+                        // sessão local e volta pro mesmo estado de "sessão expirada" já
+                        // usado quando não há usuário carregado, em vez de mostrar o
+                        // cartão com "consumo indisponível".
+                        authRepository.logout()
+                        _errorMessage.value = "Sessão expirada. Faça login novamente."
+                        _uiState.value = null
+                    }
                     is MealHistoryResult.Failure -> {
                         _uiState.value = CardUiState(user = user, planoInfo = planoInfo)
                         _errorMessage.value = meals.message

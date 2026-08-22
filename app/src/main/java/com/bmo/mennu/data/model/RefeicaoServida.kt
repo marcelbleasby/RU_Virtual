@@ -10,10 +10,20 @@ data class RefeicaoServida(
     val id: Int,
     @SerializedName("cardapio_id")
     val cardapioId: Int,
+    @SerializedName("usuario_id")
+    val usuarioId: Int,
     @SerializedName("unidade_nome")
     val unidadeNome: String?,
+    @SerializedName("usuario_nome")
+    val usuarioNome: String?,
+    @SerializedName("usuario_matricula")
+    val usuarioMatricula: String?,
+    @SerializedName("criado_por_id")
+    val criadoPorId: Int?,
     @SerializedName("data_hora")
     val dataHora: String,
     @SerializedName("manual")
-    val manual: Boolean
+    val manual: Boolean,
+    @SerializedName("motivo")
+    val motivo: String?
 )

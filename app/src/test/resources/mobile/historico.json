@@ -1,0 +1,25 @@
+{
+  "message": "Ok",
+  "metadados": {
+    "count": 1,
+    "next": null,
+    "previous": null,
+    "page": 1,
+    "total_pages": 1,
+    "total_results": 1
+  },
+  "results": [
+    {
+      "id": 1,
+      "cardapio_id": 1,
+      "usuario_id": 1,
+      "unidade_nome": "Unidade A",
+      "usuario_nome": "Comensal",
+      "usuario_matricula": "A-100",
+      "criado_por_id": null,
+      "data_hora": "2026-09-30T12:00:00Z",
+      "manual": false,
+      "motivo": null
+    }
+  ]
+}

@@ -1,5 +1,9 @@
 package com.bmo.mennu.data
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+
 import com.bmo.mennu.data.model.RefeicaoServida
 import com.bmo.mennu.data.remote.ApiService
 import javax.inject.Inject
@@ -34,6 +38,7 @@ class MealRepository @Inject constructor(
                 else -> MealHistoryResult.Failure("Erro ao carregar refeições (código ${response.code()}).")
             }
         } catch (e: Exception) {
+                if (e is CancellationException) throw e
             MealHistoryResult.Failure(e.localizedMessage ?: "Erro de conexão.")
         }
     }

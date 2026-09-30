@@ -1,5 +1,9 @@
 package com.bmo.mennu.ui.cardapio
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bmo.mennu.data.AuthRepository
@@ -112,8 +116,10 @@ class CardapioViewModel @Inject constructor(
             if (resetSelection) _uiState.value = _uiState.value.copy(isLoading = true)
             try {
                 val days = cardapioRepository.getWeekMenu(weekStart)
+                currentCoroutineContext().ensureActive()
                 _uiState.value = _uiState.value.withFetchedWeek(days, resetSelection)
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 _uiState.value = _uiState.value.copy(isLoading = false)
                 _errorMessage.value = e.localizedMessage ?: "Erro de conexão. Tente novamente."
             } finally {

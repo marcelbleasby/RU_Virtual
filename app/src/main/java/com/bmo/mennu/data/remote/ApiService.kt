@@ -1,6 +1,8 @@
 package com.bmo.mennu.data.remote
 
 import com.bmo.mennu.data.model.CardapioResponse
+import com.bmo.mennu.data.model.UsuarioAtivoResponse
+import com.bmo.mennu.data.model.ContextosResponse
 import com.bmo.mennu.data.model.LoginRequest
 import com.bmo.mennu.data.model.LoginResponse
 import com.bmo.mennu.data.model.PaginatedResponse
@@ -17,7 +19,10 @@ interface ApiService {
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
     @GET("api/auth/ativo")
-    suspend fun getUsuarioAtivo(): Response<LoginResponse>
+    suspend fun getUsuarioAtivo(): Response<UsuarioAtivoResponse>
+
+    @GET("api/auth/contextos")
+    suspend fun getContextos(): Response<ContextosResponse>
 
     @POST("api/auth/logout")
     suspend fun logout(): Response<Unit>

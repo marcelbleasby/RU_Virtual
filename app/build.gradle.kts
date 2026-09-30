@@ -20,7 +20,10 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "API_BASE_URL", "\"https://mennu-hom.bmo.dev.br/\"")
+        val apiBaseUrl = providers.gradleProperty("mennuMobileApiBaseUrl")
+            .orElse("https://mennu-hom.bmo.dev.br/").get()
+        require(apiBaseUrl.endsWith("/") && apiBaseUrl.startsWith("https://"))
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
     }
 
     buildTypes {
@@ -89,6 +92,7 @@ dependencies {
     // --- Testes (Padrão) ---
     implementation(libs.play.services.wearable)
     testImplementation(libs.junit)
+    testImplementation("org.mockito:mockito-core:5.12.0")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)

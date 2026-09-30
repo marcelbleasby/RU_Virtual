@@ -1,5 +1,9 @@
 package com.bmo.mennu.data
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+
 import com.bmo.mennu.data.model.CardapioResponse
 import com.bmo.mennu.data.model.PratoResponse
 import com.bmo.mennu.data.model.TipoRefeicaoResponse

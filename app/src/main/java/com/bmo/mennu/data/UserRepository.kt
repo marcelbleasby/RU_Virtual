@@ -67,6 +67,7 @@ class UserRepository(
     fun clearUser() {
         user = null
         sharedPreferences.edit { remove(USER_KEY) }
+        syncToWear(null, null, 0)
     }
 
     private fun syncToWear(vCardId: String?, tenantSalt: String?, refeicoesMes: Int?) {
@@ -79,7 +80,7 @@ class UserRepository(
         }
         val putDataReq = putDataMapReq.asPutDataRequest().setUrgent()
         dataClient.putDataItem(putDataReq).addOnSuccessListener {
-            Log.d("UserRepository", "Dados sincronizados com o Wear (vCardId=$vCardId, refeicoesMes=$refeicoesMes)")
+            Log.d("UserRepository", "Dados sincronizados com o Wear")
         }.addOnFailureListener {
             Log.e("UserRepository", "Falha ao sincronizar dados com o Wear", it)
         }

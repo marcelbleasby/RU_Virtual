@@ -1,5 +1,9 @@
 package com.bmo.mennu.ui.card
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -81,6 +85,7 @@ class CardViewModel @Inject constructor(
                 val planoInfo = planoRepository.getPlanoInfo()
                 when (val meals = mealRepository.getRefeicoesServidas(user.id)) {
                     is MealHistoryResult.Success -> {
+                        currentCoroutineContext().ensureActive()
                         val refeicoesEsteMes = meals.refeicoes.count { isNoMesAtual(it.dataHora) }
                         userRepository.updateRefeicoesMes(refeicoesEsteMes)
                         _uiState.value = CardUiState(
@@ -108,6 +113,7 @@ class CardViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 Log.e("CardViewModel", "Erro ao carregar dados do cartão", e)
                 _errorMessage.value = e.localizedMessage ?: "Erro de conexão. Tente novamente."
             } finally {
@@ -139,6 +145,7 @@ class CardViewModel @Inject constructor(
             val mesAtual = SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(Date())
             iso.startsWith(mesAtual)
         } catch (e: Exception) {
+                if (e is CancellationException) throw e
             false
         }
     }

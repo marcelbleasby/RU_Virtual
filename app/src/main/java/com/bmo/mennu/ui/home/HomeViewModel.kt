@@ -1,5 +1,9 @@
 package com.bmo.mennu.ui.home
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bmo.mennu.data.AuthRepository
@@ -75,8 +79,10 @@ class HomeViewModel @Inject constructor(
                     ?.let { tipo -> hoje?.meals?.entries?.firstOrNull { it.key.id == tipo.id }?.value }
                     .orEmpty()
 
+                currentCoroutineContext().ensureActive()
                 _uiState.value = _uiState.value.copy(refeicaoAtualNome = refeicaoAtual?.nome, pratosHoje = pratosHoje)
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 // Mantém o que já estava no estado (nome/créditos aplicados acima, ou
                 // pratosHoje/refeicaoAtualNome de um load anterior) — sem Toast, pra não
                 // introduzir um segundo canal de erro só pro Home.

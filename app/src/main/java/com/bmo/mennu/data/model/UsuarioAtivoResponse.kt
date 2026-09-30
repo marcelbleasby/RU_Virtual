@@ -2,7 +2,7 @@ package com.bmo.mennu.data.model
 
 import com.google.gson.annotations.SerializedName
 
-data class LoginResponse(
+data class UsuarioAtivoResponse(
     @SerializedName("id") override val id: Int,
     @SerializedName("nome") override val nome: String?,
     @SerializedName("email") override val email: String,
@@ -15,6 +15,5 @@ data class LoginResponse(
     @SerializedName("atualizado_em") override val atualizadoEm: String,
     @SerializedName("numero_cartao") override val numeroCartao: String?,
     @SerializedName("tenant_salt") override val tenantSalt: String?,
-    @SerializedName("contextos") override val contextos: List<Contexto> = emptyList(),
-    @SerializedName("token_access") val tokenAccess: TokenAccess
+    @SerializedName("contextos") override val contextos: List<Contexto> = emptyList()
 ) : PerfilSessao

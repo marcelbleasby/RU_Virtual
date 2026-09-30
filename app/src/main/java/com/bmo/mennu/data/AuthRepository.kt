@@ -36,37 +36,63 @@ class AuthRepository @Inject constructor(
             })
             require(body.tokenAccess.token.isNotBlank()) { "Login sem token de sessão." }
             userRepository.clearUser()
-            tokenStore.salvar(Sessao(body.tokenAccess.token, body.contextos, escolherContexto(body.contextos, null)))
+            // Login pode devolver só uma empresa na API principal. Descobrir antes de escolher.
+            tokenStore.salvar(Sessao(token = body.tokenAccess.token))
             revalidar()
         }
     }
 
     suspend fun refreshUsuarioAtivo(): Result<User> = mutex.withLock { resultado { revalidar() } }
 
-    private suspend fun revalidar(): User {
-        var response = apiService.getUsuarioAtivo()
-        if (response.code() == 403) {
-            userRepository.clearUser()
-            tokenStore.salvar(tokenStore.sessao.value.copy(selecionado = null, validada = false))
-            response = apiService.getUsuarioAtivo()
-        }
-        if (response.code() == 401) {
+    private fun verificarSessaoExpirada(code: Int) {
+        if (code == 401) {
             tokenStore.clear()
             userRepository.clearUser()
             throw IllegalStateException("Sessão expirada. Faça login novamente.")
         }
-        var body = response.body()
-        if (!response.isSuccessful || body == null) throw IllegalStateException("Não foi possível validar a sessão (${response.code()}).")
-        val anterior = tokenStore.sessao.value.selecionado
-        tokenStore.atualizarContextos(body.contextos, validada = tokenStore.sessao.value.validada)
-        if (!tokenStore.sessao.value.selecionado?.mesmoPar(anterior).let { it == true } && tokenStore.sessao.value.selecionado != null) {
-            response = apiService.getUsuarioAtivo()
-            body = response.body()
-            if (!response.isSuccessful || body == null) throw IllegalStateException("Não foi possível validar a unidade.")
+    }
+
+    private suspend fun descobrirContextos() {
+        // O interceptor envia só o token: esta é a lista global, inclusive na API principal.
+        val response = apiService.getContextos()
+        verificarSessaoExpirada(response.code())
+        val body = response.body()
+        if (!response.isSuccessful || body == null) {
+            throw IllegalStateException("Não foi possível consultar suas unidades (${response.code()}).")
         }
-        val user = body.toUser()
+        val atual = tokenStore.sessao.value
+        val selecionado = escolherContexto(body.contextos, atual.selecionado)
+        val mesmaSelecao = selecionado?.mesmoPar(atual.selecionado) == true
+        if (!mesmaSelecao) userRepository.clearUser()
+        tokenStore.salvar(atual.copy(
+            contextos = body.contextos, selecionado = selecionado,
+            validada = atual.validada && mesmaSelecao,
+        ))
+    }
+
+    private suspend fun revalidar(): User {
+        descobrirContextos()
+        var response = apiService.getUsuarioAtivo()
+        verificarSessaoExpirada(response.code())
+        if (response.code() == 403) {
+            // O vínculo pode ter sido revogado entre a descoberta e a consulta do perfil.
+            userRepository.clearUser()
+            tokenStore.salvar(tokenStore.sessao.value.copy(selecionado = null, validada = false))
+            descobrirContextos()
+            response = apiService.getUsuarioAtivo()
+            verificarSessaoExpirada(response.code())
+        }
+        val body = response.body()
+        if (!response.isSuccessful || body == null) {
+            throw IllegalStateException("Não foi possível validar a sessão (${response.code()}).")
+        }
+        val atual = tokenStore.sessao.value
+        val user = if (atual.selecionado != null) body.toUser() else body.toUser().copy(
+            empresaId = null, matricula = null, cargo = null, vCardId = null, tenantSalt = null,
+        )
         userRepository.saveUser(user)
-        tokenStore.atualizarContextos(body.contextos)
+        // /ativo pode conter só a empresa selecionada. Nunca substitui a lista global.
+        tokenStore.salvar(atual.copy(validada = true))
         return user
     }
 

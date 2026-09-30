@@ -122,7 +122,7 @@ class SessaoTest {
     }
 }
 
-private class PreferenciasMemoria : SharedPreferences {
+internal class PreferenciasMemoria : SharedPreferences {
     private val valores = mutableMapOf<String, Any?>()
     override fun getAll(): MutableMap<String, *> = valores.toMutableMap()
     override fun getString(key: String?, defValue: String?): String? = valores[key] as? String ?: defValue

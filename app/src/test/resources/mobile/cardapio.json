@@ -1,0 +1,32 @@
+{
+  "message": "Ok",
+  "metadados": {
+    "count": 1,
+    "next": null,
+    "previous": null,
+    "page": 1,
+    "total_pages": 1,
+    "total_results": 1
+  },
+  "results": [
+    {
+      "id": 1,
+      "unidade": 1,
+      "unidade_nome": "Unidade A",
+      "data_refeicao": "2026-09-30",
+      "tipo_refeicao": 1,
+      "tipo_refeicao_nome": "Jantar",
+      "tipo_refeicao_ordem": 2,
+      "pratos": [
+        {
+          "id": 1,
+          "tipo_prato": "principal",
+          "nome": "Arroz",
+          "restricoes": [
+            "vegano"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -3,6 +3,7 @@ package com.bmo.mennu.ui.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -14,6 +15,7 @@ sealed class Screen(val route: String) {
     object Cardapio : Screen("cardapio")
     object Cartao : Screen("card")
     object QrCode : Screen("qrcode")
+    object Conta : Screen("conta")
 }
 
 data class BottomNavItem(val screen: Screen, val label: String, val icon: ImageVector)
@@ -22,7 +24,8 @@ val bottomNavItems = listOf(
     BottomNavItem(Screen.Home, "Início", Icons.Filled.Home),
     BottomNavItem(Screen.Cardapio, "Cardápio", Icons.Filled.Restaurant),
     BottomNavItem(Screen.Cartao, "Cartão", Icons.Filled.CreditCard),
-    BottomNavItem(Screen.QrCode, "QR Code", Icons.Filled.QrCode2)
+    BottomNavItem(Screen.QrCode, "QR Code", Icons.Filled.QrCode2),
+    BottomNavItem(Screen.Conta, "Conta", Icons.Filled.Person)
 )
 
 // Único jeito de navegar entre as abas da bottom bar (usado pela própria bottom bar

@@ -1,5 +1,6 @@
 package com.bmo.mennu.ui.card
 
+
 import android.app.Activity
 import android.content.ComponentName
 import android.content.Intent
@@ -328,15 +329,7 @@ fun CardScreen(navController: NavHostController, viewModel: CardViewModel = hilt
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
     ) {
-        AppHeader(
-            userName = nome,
-            onAvatarClick = {
-                viewModel.onLogoutClicked()
-                navController.navigate(Screen.Login.route) {
-                    popUpTo(navController.graph.id) { inclusive = true }
-                }
-            }
-        )
+        AppHeader(userName = nome)
 
         Column(modifier = Modifier.padding(16.dp)) {
             Text(

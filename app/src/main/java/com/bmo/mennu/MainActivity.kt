@@ -5,8 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.key
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -21,6 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.bmo.mennu.ui.card.CardScreen
+import com.bmo.mennu.ui.conta.ContaScreen
 import com.bmo.mennu.ui.cardapio.CardapioScreen
 import com.bmo.mennu.ui.home.HomeScreen
 import com.bmo.mennu.ui.login.LoginScreen
@@ -52,7 +51,8 @@ fun AppNavigation(viewModel: SessaoViewModel = hiltViewModel()) {
     val escolhendo by viewModel.escolhendo.collectAsStateWithLifecycle()
     val restaurando by viewModel.restaurando.collectAsStateWithLifecycle()
     if (sessao.token != null && (restaurando && !sessao.validada || sessao.validada && sessao.selecionado == null || escolhendo || carregando)) {
-        ContextoScreen(sessao, carregando, erro, viewModel::selecionar, viewModel::atualizar, viewModel::sair)
+        ContextoScreen(sessao, carregando, erro, viewModel::selecionar, viewModel::atualizar, viewModel::sair,
+            voltar = if (escolhendo && sessao.validada && sessao.selecionado != null) viewModel::cancelarTroca else null)
         return
     }
     // Recriar navegação cancela ViewModels/cargas da seleção anterior.
@@ -61,11 +61,6 @@ fun AppNavigation(viewModel: SessaoViewModel = hiltViewModel()) {
         val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
         Scaffold(
-            topBar = {
-                if (sessao.validada && sessao.token != null) TextButton(onClick = viewModel::trocar) {
-                    Text("${sessao.selecionado?.unidadeNome ?: "Unidade"} · Trocar unidade")
-                }
-            },
             bottomBar = {
                 if (bottomNavItems.any { it.screen.route == currentRoute }) {
                     MennuBottomBar(navController = navController, currentRoute = currentRoute)
@@ -82,6 +77,9 @@ fun AppNavigation(viewModel: SessaoViewModel = hiltViewModel()) {
                 composable(Screen.Cardapio.route) { CardapioScreen(navController = navController) }
                 composable(Screen.Cartao.route) { CardScreen(navController = navController) }
                 composable(Screen.QrCode.route) { QrCodeScreen() }
+                composable(Screen.Conta.route) {
+                    ContaScreen(viewModel.usuario, sessao, viewModel::trocar, viewModel::sair)
+                }
             }
         }
     }

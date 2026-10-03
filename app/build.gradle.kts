@@ -21,7 +21,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         val apiBaseUrl = providers.gradleProperty("mennuMobileApiBaseUrl")
-            .orElse("https://mennu-hom.bmo.dev.br/").get()
+            .orElse("https://mobile-mennu.bmo.dev.br/").get()
         require(apiBaseUrl.endsWith("/") && apiBaseUrl.startsWith("https://"))
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
     }

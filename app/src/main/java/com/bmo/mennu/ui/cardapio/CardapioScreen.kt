@@ -1,5 +1,6 @@
 package com.bmo.mennu.ui.cardapio
 
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -55,15 +56,7 @@ fun CardapioScreen(navController: NavHostController, viewModel: CardapioViewMode
                 .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(rememberScrollState())
         ) {
-            AppHeader(
-                userName = uiState.nomeExibicao,
-                onAvatarClick = {
-                    viewModel.onLogoutClicked()
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(navController.graph.id) { inclusive = true }
-                    }
-                }
-            )
+            AppHeader(userName = uiState.nomeExibicao)
 
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(

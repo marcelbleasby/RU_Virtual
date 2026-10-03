@@ -17,7 +17,7 @@ fun MennuBottomBar(navController: NavHostController, currentRoute: String?) {
                 selected = currentRoute == item.screen.route,
                 onClick = { navController.navigateToBottomNavDestination(item.screen.route) },
                 icon = { Icon(imageVector = item.icon, contentDescription = item.label) },
-                label = { Text(item.label) },
+                label = { Text(item.label, maxLines = 1, softWrap = false) },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.primary,
                     selectedTextColor = MaterialTheme.colorScheme.primary,

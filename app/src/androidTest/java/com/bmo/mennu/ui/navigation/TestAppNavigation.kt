@@ -17,6 +17,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.bmo.mennu.data.Sessao
+import com.bmo.mennu.data.model.Contexto
+import com.bmo.mennu.data.model.User
+import com.bmo.mennu.ui.conta.ContaScreen
 
 /**
  * Exercises the real navigation contract — [Screen], [bottomNavItems], [MennuBottomBar] — behind
@@ -63,25 +67,29 @@ fun TestAppNavigation() {
                     Text("Home Screen")
                     Text("Counter: $counter")
                     Button(onClick = { counter++ }) { Text("Incrementar") }
-                    Button(onClick = {
-                        navController.navigate(Screen.Login.route) {
-                            popUpTo(navController.graph.id) { inclusive = true }
-                        }
-                    }) { Text("Sair") }
                 }
             }
             composable(Screen.Cardapio.route) { Text("Cardapio Screen") }
             composable(Screen.Cartao.route) {
                 Column {
                     Text("Card Screen")
-                    Button(onClick = {
-                        navController.navigate(Screen.Login.route) {
-                            popUpTo(navController.graph.id) { inclusive = true }
-                        }
-                    }) { Text("Sair Cartao") }
                 }
             }
             composable(Screen.QrCode.route) { Text("QrCode Screen") }
+            composable(Screen.Conta.route) {
+                val contexto = Contexto(1, "Instituição de teste", 10, "Unidade de teste")
+                ContaScreen(
+                    usuario = User(1, "Comensal de teste", "teste@exemplo.com", "A-1", null, 1),
+                    sessao = Sessao("token-teste", listOf(contexto), contexto, true),
+                    trocarUnidade = { navController.navigate("escolha_unidade") },
+                    sair = {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(navController.graph.id) { inclusive = true }
+                        }
+                    }
+                )
+            }
+            composable("escolha_unidade") { Text("Escolha sua unidade") }
         }
     }
 }

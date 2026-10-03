@@ -3,6 +3,7 @@ package com.bmo.mennu.ui.sessao
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bmo.mennu.data.AuthRepository
+import com.bmo.mennu.data.UserRepository
 import com.bmo.mennu.data.model.Contexto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,7 +12,11 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SessaoViewModel @Inject constructor(private val authRepository: AuthRepository) : ViewModel() {
+class SessaoViewModel @Inject constructor(
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository
+) : ViewModel() {
+    val usuario get() = userRepository.getUser()
     val sessao = authRepository.sessao
     private val _restaurando = MutableStateFlow(sessao.value.token != null)
     val restaurando = _restaurando.asStateFlow()
@@ -34,7 +39,16 @@ class SessaoViewModel @Inject constructor(private val authRepository: AuthReposi
         }
     }
 
-    fun trocar() { _escolhendo.value = true }
+    fun trocar() {
+        _escolhendo.value = true
+        atualizar()
+    }
+
+    fun cancelarTroca() {
+        if (!_carregando.value && sessao.value.validada && sessao.value.selecionado != null) {
+            _escolhendo.value = false
+        }
+    }
 
     fun selecionar(contexto: Contexto) {
         if (_carregando.value) return

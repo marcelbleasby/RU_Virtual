@@ -1,5 +1,6 @@
 package com.bmo.mennu.ui.sessao
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,7 +21,9 @@ import com.bmo.mennu.data.model.Contexto
 
 @Composable
 fun ContextoScreen(sessao: Sessao, carregando: Boolean, erro: String?,
-                   selecionar: (Contexto) -> Unit, atualizar: () -> Unit, sair: () -> Unit) {
+                   selecionar: (Contexto) -> Unit, atualizar: () -> Unit, sair: () -> Unit,
+                   voltar: (() -> Unit)? = null) {
+    BackHandler(enabled = voltar != null && !carregando) { voltar?.invoke() }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text("Sua unidade", style = MaterialTheme.typography.headlineMedium)
@@ -38,6 +41,7 @@ fun ContextoScreen(sessao: Sessao, carregando: Boolean, erro: String?,
         }
         erro?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         TextButton(onClick = atualizar, enabled = !carregando) { Text("Atualizar") }
+        voltar?.let { TextButton(onClick = it, enabled = !carregando) { Text("Voltar") } }
         TextButton(onClick = sair, enabled = !carregando) { Text("Sair") }
     }
 }

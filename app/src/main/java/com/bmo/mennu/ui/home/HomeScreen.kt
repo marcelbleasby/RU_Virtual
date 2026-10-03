@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -65,15 +66,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                 .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(rememberScrollState())
         ) {
-            AppHeader(
-                userName = uiState.nomeExibicao,
-                onAvatarClick = {
-                    viewModel.onLogoutClicked()
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(navController.graph.id) { inclusive = true }
-                    }
-                }
-            )
+            AppHeader(userName = uiState.nomeExibicao)
 
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -232,14 +225,17 @@ private fun LunchTodaySection(refeicaoNome: String?, pratos: List<Dish>, onVerTu
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = refeicaoNome?.let { "$it de hoje" } ?: "Refeição de hoje",
+                modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onBackground,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -248,7 +244,9 @@ private fun LunchTodaySection(refeicaoNome: String?, pratos: List<Dish>, onVerTu
                 Text(
                     text = "Ver tudo",
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    softWrap = false
                 )
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,

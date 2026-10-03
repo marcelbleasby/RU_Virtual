@@ -14,7 +14,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-private val TAB_LABELS = listOf("Início", "Cardápio", "Cartão", "QR Code")
+private val TAB_LABELS = listOf("Início", "Cardápio", "Cartão", "QR Code", "Conta")
 
 @RunWith(AndroidJUnit4::class)
 class BottomNavigationTest {
@@ -38,9 +38,9 @@ class BottomNavigationTest {
         TAB_LABELS.forEach { composeTestRule.onNodeWithText(it).assertDoesNotExist() }
     }
 
-    // Scenario 2 — login pops Login off the stack, lands on Home with all 4 tabs visible
+    // Login abre a Home com as cinco abas visíveis.
     @Test
-    fun login_navigatesToHome_showsBottomBarWithFourTabs() {
+    fun login_navigatesToHome_showsBottomBarWithFiveTabs() {
         login()
         composeTestRule.onNodeWithText("Home Screen").assertExists()
         TAB_LABELS.forEach { composeTestRule.onNodeWithText(it).assertExists() }
@@ -60,6 +60,9 @@ class BottomNavigationTest {
 
         composeTestRule.onNodeWithText("QR Code").performClick()
         composeTestRule.onNodeWithText("QrCode Screen").assertExists()
+
+        composeTestRule.onNodeWithText("Conta").performClick()
+        composeTestRule.onNodeWithText("Minha conta").assertExists()
 
         TAB_LABELS.forEach { composeTestRule.onNodeWithText(it).assertExists() }
     }
@@ -96,11 +99,13 @@ class BottomNavigationTest {
         composeTestRule.onNodeWithText("Home Screen").assertExists()
     }
 
-    // Scenario 5 — logout from Home clears the whole graph (popUpTo(graph.id), HomeScreen.kt:69)
+    // A aba Conta concentra o logout.
     @Test
     fun logoutFromHome_returnsToLogin_bottomBarHidden() {
         login()
-        composeTestRule.onNodeWithText("Sair").performClick()
+        composeTestRule.onNodeWithText("Conta").performClick()
+        composeTestRule.onNodeWithText("Minha conta").assertExists()
+        composeTestRule.onNodeWithText("Sair da conta").performClick()
 
         composeTestRule.onNodeWithText("Entrar").assertExists()
         TAB_LABELS.forEach { composeTestRule.onNodeWithText(it).assertDoesNotExist() }
@@ -111,7 +116,9 @@ class BottomNavigationTest {
     fun logoutFromCard_returnsToLogin_bottomBarHidden() {
         login()
         composeTestRule.onNodeWithText("Cartão").performClick()
-        composeTestRule.onNodeWithText("Sair Cartao").performClick()
+        composeTestRule.onNodeWithText("Conta").performClick()
+        composeTestRule.onNodeWithText("Minha conta").assertExists()
+        composeTestRule.onNodeWithText("Sair da conta").performClick()
 
         composeTestRule.onNodeWithText("Entrar").assertExists()
         TAB_LABELS.forEach { composeTestRule.onNodeWithText(it).assertDoesNotExist() }
@@ -123,7 +130,7 @@ class BottomNavigationTest {
     // invariant directly against the production predicate instead.
     @Test
     fun visibilityRule_hidesBarForAnyRouteNotInBottomNavItems() {
-        val allScreens = listOf(Screen.Login, Screen.Home, Screen.Cardapio, Screen.Cartao, Screen.QrCode)
+        val allScreens = listOf(Screen.Login, Screen.Home, Screen.Cardapio, Screen.Cartao, Screen.QrCode, Screen.Conta)
         assertTrue(bottomNavItems.none { it.screen.route == Screen.Login.route })
         allScreens.forEach { screen ->
             val shouldShow = bottomNavItems.any { it.screen.route == screen.route }
@@ -163,5 +170,25 @@ class BottomNavigationTest {
 
         composeTestRule.onNodeWithText("Cardapio Screen").assertExists()
         TAB_LABELS.forEach { composeTestRule.onNodeWithText(it).assertExists() }
+    }
+
+    @Test
+    fun contaExibePerfilEUnidadeSelecionada() {
+        login()
+        composeTestRule.onNodeWithText("Conta").performClick()
+        composeTestRule.onNodeWithText("Comensal de teste").assertExists()
+        composeTestRule.onNodeWithText("teste@exemplo.com").assertExists()
+        composeTestRule.onNodeWithText("A-1").assertExists()
+        composeTestRule.onNodeWithText("Instituição de teste").assertExists()
+        composeTestRule.onNodeWithText("Unidade de teste").assertExists()
+    }
+
+    @Test
+    fun contaAbreEscolhaDeUnidadeSemSairDaSessao() {
+        login()
+        composeTestRule.onNodeWithText("Conta").performClick()
+        composeTestRule.onNodeWithText("Trocar unidade").performClick()
+        composeTestRule.onNodeWithText("Escolha sua unidade").assertExists()
+        composeTestRule.onNodeWithText("Entrar").assertDoesNotExist()
     }
 }

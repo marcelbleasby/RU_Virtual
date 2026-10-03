@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -13,16 +14,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.remote.interactions.RemoteActivityHelper
+import com.bmo.mennu.presentation.theme.MennuTheme
 import com.bmo.mennu.presentation.viewmodel.MainViewModel
 import com.google.android.gms.wearable.Wearable
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Troca o tema de splash pelo postSplashScreenTheme; sem isso a janela fica com fundo claro.
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         setContent {
             val viewModel: MainViewModel = viewModel(
@@ -30,7 +35,9 @@ class MainActivity : ComponentActivity() {
             )
             val vCardId by viewModel.vCardId.collectAsState()
             val refeicoesMes by viewModel.refeicoesMes.collectAsState()
-            WearApp(vCardId = vCardId, refeicoesMes = refeicoesMes)
+            MennuTheme {
+                WearApp(vCardId = vCardId, refeicoesMes = refeicoesMes)
+            }
         }
     }
 }
@@ -41,7 +48,9 @@ fun WearApp(vCardId: String?, refeicoesMes: Int?) {
     val remoteActivityHelper = RemoteActivityHelper(context)
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colors.background),
         contentAlignment = Alignment.Center
     ) {
         if (refeicoesMes != null || vCardId != null) {

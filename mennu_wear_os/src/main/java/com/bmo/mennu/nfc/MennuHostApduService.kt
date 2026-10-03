@@ -5,12 +5,11 @@ import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
+import com.bmo.mennu.data.dataStore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import java.util.Arrays
 
-private val Context.dataStore by preferencesDataStore(name = "user_prefs")
 
 class MennuHostApduService : HostApduService() {
 

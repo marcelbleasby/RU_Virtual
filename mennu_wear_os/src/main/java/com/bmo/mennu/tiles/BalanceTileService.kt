@@ -3,7 +3,7 @@ package com.bmo.mennu.tiles
 import android.content.Context
 import androidx.wear.tiles.TileService
 import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
+import com.bmo.mennu.data.dataStore
 
 import androidx.wear.tiles.DeviceParametersBuilders
 import androidx.wear.tiles.DimensionBuilders
@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.guava.future
 
 private const val RESOURCES_VERSION = "1"
-private val Context.dataStore by preferencesDataStore(name = "user_prefs")
 
 class BalanceTileService : TileService() {
     private val serviceJob = Job()

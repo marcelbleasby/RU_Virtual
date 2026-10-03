@@ -9,7 +9,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.bmo.mennu.wearos"
+        applicationId = "com.bmo.mennu"
         minSdk = 30
         targetSdk = 36
         versionCode = 1
